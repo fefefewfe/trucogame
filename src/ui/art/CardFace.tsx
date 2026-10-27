@@ -1,7 +1,8 @@
 import { memo } from 'react';
 import type { Card, Suit } from '../../engine/cards';
 import { CourtFigure } from './figures';
-import { PINTAS, Pip, SUIT_COLOR } from './suits';
+import { LongBasto, LongEspada, PINTAS, Pip, SUIT_COLOR } from './suits';
+import { useRealDeck } from './realDeck';
 
 export const CARD_W = 200;
 export const CARD_H = 310;
@@ -51,6 +52,24 @@ const PIP_LAYOUT: Record<number, [number, number][]> = {
 };
 
 const PIP_SIZE: Record<number, number> = { 2: 60, 3: 54, 4: 50, 5: 46, 6: 42, 7: 38 };
+
+/**
+ * Espadas y bastos de la baraja tradicional: largos y entrecruzados.
+ * Mitad inclinados hacia un lado, mitad hacia el otro y, si son impares, uno derecho al medio.
+ */
+function crossLayout(n: number): { x: number; rot: number; len: number }[] {
+  const pairs = Math.floor(n / 2);
+  const xs = pairs === 1 ? [100] : pairs === 2 ? [76, 124] : [62, 100, 138];
+  const angle = pairs === 1 ? 30 : pairs === 2 ? 22 : 17;
+  const len = n <= 3 ? 1 : n <= 5 ? 0.95 : 0.9;
+  const out: { x: number; rot: number; len: number }[] = [];
+  xs.forEach((x, i) => {
+    out.push({ x, rot: i % 2 === 0 ? angle : -angle, len });
+    out.push({ x, rot: i % 2 === 0 ? -angle : angle, len });
+  });
+  if (n % 2 === 1) out.push({ x: 100, rot: 0, len });
+  return out;
+}
 
 const DECK_PAPER: Record<DeckStyle, { paper: string; edge: string; tint?: string }> = {
   clasica: { paper: 'url(#card-paper)', edge: '#c7b48c' },
@@ -105,12 +124,15 @@ function CornerIndex({ card }: { card: Card }) {
       >
         {label}
       </text>
-      <Pip suit={card.suit} x={label.length > 1 ? 36 : 34} y={66} size={18} />
     </g>
   );
 }
 
 export const CardFace = memo(function CardFace({ card, deck = 'clasica' }: { card: Card; deck?: DeckStyle }) {
+  const real = useRealDeck();
+  if (real) {
+    return <img className="card-img" src={real.src(card.id)} alt={`${card.rank} de ${card.suit}`} draggable={false} />;
+  }
   const paper = DECK_PAPER[deck];
   const crossing = card.suit === 'espada' || card.suit === 'basto';
   let center: React.ReactNode;
@@ -123,19 +145,17 @@ export const CardFace = memo(function CardFace({ card, deck = 'clasica' }: { car
     );
   } else if (card.rank >= 10) {
     center = <CourtFigure rank={card.rank as 10 | 11 | 12} suit={card.suit} />;
+  } else if (crossing) {
+    const Long = card.suit === 'espada' ? LongEspada : LongBasto;
+    center = crossLayout(card.rank).map((p, i) => (
+      <g key={i} transform={`translate(${p.x} 156) rotate(${p.rot}) scale(${0.98 * p.len})`}>
+        <Long />
+      </g>
+    ));
   } else {
     const layout = PIP_LAYOUT[card.rank];
     const size = PIP_SIZE[card.rank];
-    center = layout.map(([x, y], i) => (
-      <Pip
-        key={i}
-        suit={card.suit}
-        x={x}
-        y={y}
-        size={crossing ? size * 1.12 : size}
-        rotate={crossing ? (i % 2 === 0 ? -18 : 18) : 0}
-      />
-    ));
+    center = layout.map(([x, y], i) => <Pip key={i} suit={card.suit} x={x} y={y} size={size} />);
   }
   return (
     <svg viewBox={`0 0 ${CARD_W} ${CARD_H}`} className="card-svg" role="img" aria-label={`${card.rank} de ${card.suit}`}>

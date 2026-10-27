@@ -18,6 +18,14 @@ export interface SettingsState {
   botSpeed: BotSpeed;
   fanHand: boolean;
   showEnvido: boolean;
+  /** Usar la baraja escaneada de public/cartas si está disponible. */
+  realDeck: boolean;
+  /** Lenguaje fuerte (+18): los personajes a veces putean. */
+  puteadas: boolean;
+  /** Nombre de la voz del navegador elegida ('' = automática). */
+  voiceName: string;
+  /** Escuchar el micrófono para cantar con la voz. */
+  microphone: boolean;
   set: (patch: Partial<Omit<SettingsState, 'set'>>) => void;
 }
 
@@ -37,6 +45,10 @@ export const useSettings = create<SettingsState>()(
       botSpeed: 'normal',
       fanHand: true,
       showEnvido: true,
+      realDeck: true,
+      puteadas: false,
+      voiceName: '',
+      microphone: false,
       set: (patch) => set(patch),
     }),
     { name: 'truco-settings-v1' },

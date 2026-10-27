@@ -1,6 +1,11 @@
+import { useEffect, useState } from 'react';
 import { useSettings, type AnimationLevel, type BotSpeed } from '../../store/settings';
-import { hasSpanishSpeech } from '../../audio/voice';
+import { listSpanishVoices, onVoicesChanged, previewVoice, type VoiceOption } from '../../audio/voice';
 import { sfx } from '../../audio/sfx';
+import { getCharacter } from '../../game/characters';
+import { useProfile } from '../../store/profile';
+import { useRealDeckStore } from '../art/realDeck';
+import { speechRecognitionSupported } from '../../audio/voiceCommands';
 
 function Slider({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
   return (
@@ -76,11 +81,44 @@ export function AudioControls() {
       <Slider label="Efectos" value={s.sfx} onChange={(v) => s.set({ sfx: v })} />
       <Slider label="Ambiente" value={s.ambient} onChange={(v) => s.set({ ambient: v })} />
       <Toggle
-        label="Voz del navegador"
+        label="Voces de los personajes"
         value={s.speech}
         onChange={(v) => s.set({ speech: v })}
-        hint={hasSpanishSpeech() ? 'Lee las frases con la voz en español del sistema mientras no haya grabaciones.' : 'Tu navegador no tiene voz en español: las frases se muestran en globos.'}
+        hint="Los personajes dicen los cantos, las respuestas y los tantos en voz alta."
       />
+      <VoicePicker />
+    </div>
+  );
+}
+
+function VoicePicker() {
+  const s = useSettings();
+  const characterId = useProfile((p) => p.characterId);
+  const [voices, setVoices] = useState<VoiceOption[]>(() => listSpanishVoices());
+  useEffect(() => onVoicesChanged(() => setVoices(listSpanishVoices())), []);
+  if (voices.length === 0) {
+    return <p className="hint">Tu navegador no tiene voces en español instaladas: las frases se muestran en globos. En Windows, Edge trae voces argentinas naturales; en Mac y iPhone, la voz "Diego".</p>;
+  }
+  const best = voices[0];
+  return (
+    <div className="voice-picker">
+      <label className="text-field">
+        <span>Voz</span>
+        <select value={s.voiceName} onChange={(e) => s.set({ voiceName: e.target.value })} className="select">
+          <option value="">Automática ({best.name})</option>
+          {voices.map((v) => (
+            <option key={v.name} value={v.name}>
+              {v.name} · {v.lang}
+            </option>
+          ))}
+        </select>
+      </label>
+      <button className="btn btn-ghost" onClick={() => previewVoice(getCharacter(characterId))}>
+        Probar voz
+      </button>
+      {!voices.some((v) => v.lang.toLowerCase().replace('_', '-') === 'es-ar') && (
+        <p className="hint">No encontramos una voz argentina en este dispositivo; se usa la mejor voz en español disponible.</p>
+      )}
     </div>
   );
 }
@@ -112,6 +150,28 @@ export function GameplayControls() {
       <Toggle label="Cartas en abanico" value={s.fanHand} onChange={(v) => s.set({ fanHand: v })} />
       <Toggle label="Confirmar con doble toque" value={s.doubleTap} onChange={(v) => s.set({ doubleTap: v })} hint="El primer toque levanta la carta y el segundo la juega. También podés arrastrarla." />
       <Toggle label="Mostrar mis tantos" value={s.showEnvido} onChange={(v) => s.set({ showEnvido: v })} hint="Muestra tu envido durante la primera baza." />
+      <Toggle
+        label="Jugar con el micrófono"
+        value={s.microphone}
+        onChange={(v) => s.set({ microphone: v })}
+        hint={speechRecognitionSupported() ? 'Decí "truco", "quiero", "envido", "al mazo" o "tiro el ancho de espada". Aparece un botón de micrófono en la mesa.' : 'Tu navegador no permite reconocer la voz. Probá con Chrome, Edge o Safari.'}
+      />
+      <Toggle label="Lenguaje fuerte (+18)" value={s.puteadas} onChange={(v) => s.set({ puteadas: v })} hint="Los personajes a veces putean cuando pierden o ganan una mano. Desactivado por defecto." />
+      <RealDeckToggle />
     </div>
+  );
+}
+
+function RealDeckToggle() {
+  const s = useSettings();
+  const manifest = useRealDeckStore((st) => st.manifest);
+  if (!manifest) return null;
+  return (
+    <Toggle
+      label="Usar baraja real escaneada"
+      value={s.realDeck}
+      onChange={(v) => s.set({ realDeck: v })}
+      hint={`${manifest.nombre ?? 'Baraja en /cartas'}${manifest.licencia ? ` · ${manifest.licencia}` : ''}`}
+    />
   );
 }

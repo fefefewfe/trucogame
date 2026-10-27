@@ -26,7 +26,10 @@ export type PhraseKey =
   | 'pierde_mano'
   | 'victoria'
   | 'derrota'
-  | 'saludo';
+  | 'saludo'
+  | 'puteada_pierde'
+  | 'puteada_gana'
+  | 'vio_sena';
 
 export interface VoiceProfile {
   pitch: number;
@@ -63,8 +66,8 @@ export const DEFAULT_PHRASES: Record<PhraseKey, string[]> = {
   quiero_dudoso: ['Quiero...', 'Y bueno, quiero.', 'Dale... quiero.'],
   no_quiero: ['¡No quiero!', 'No quiero, andá nomás.', 'Paso. No quiero.', 'Ni loco. No quiero.'],
   son_buenas: ['Son buenas.', 'Son buenas, son buenas...', 'Buenas son.'],
-  tengo: ['Tengo {n}.', '{n}.', '{n} tengo.'],
-  mejores: ['¡{n} son mejores!', '{n}, son mejores.'],
+  tengo: ['Tengo {n}.', '{n}.', '{n} tengo.', 'Tengo {n} de envido.'],
+  mejores: ['¡{n} son mejores!', '{n}, son mejores.', '¡Pará, pará! {n}.'],
   mazo: ['¡Al mazo!', 'Me voy al mazo.', 'Al mazo. Esta no es para mí.'],
   gana_baza: ['¡Tomá!', '¡Esa no la tenías!', '¡Ahí está!', '¡Y esta!'],
   carta_brava: ['¡Mirá lo que te guardé!', '¡Tomá esta!', '¡A ver qué hacés con esta!'],
@@ -74,6 +77,10 @@ export const DEFAULT_PHRASES: Record<PhraseKey, string[]> = {
   victoria: ['¡Hasta acá llegaste!', '¡Otra para la colección!', '¡Ganamos!'],
   derrota: ['Bien jugado. Quiero la revancha.', 'Me ganaste esta, pero no la guerra.'],
   saludo: ['¿Arrancamos?', 'Dale, que se enfría el café.', 'Repartí, que hoy estoy con suerte.'],
+  // Solo con "lenguaje fuerte" activado en Configuración.
+  puteada_pierde: ['¡La puta madre!', '¡La concha de la lora!', '¡Me cago en todo!', '¡Qué orto que tenés!', '¡Pero la puta que lo parió!', '¡Mierda!', '¡Qué pelotudo que soy!'],
+  puteada_gana: ['¡Tomá, boludo!', '¡Chupate esa mandarina!', '¡Andá a lavar los platos!', '¡Ni en pedo te dejo ganar!', '¡Te pasé el trapo, boludo!'],
+  vio_sena: ['¡Te vi la seña!', '¡Ojo que te vi, eh!', '¡Esa seña la vi!', '¡Disimulá un poco!'],
 };
 
 export const CHARACTERS: Character[] = [
@@ -99,6 +106,8 @@ export const CHARACTERS: Character[] = [
       eyeColor: '#3d2a14',
     },
     phrases: {
+      puteada_pierde: ['¡Porca miseria! ¡La puta madre!', '¡Me cacho en diez, la reputísima!', '¡Qué mano de mierda, por Dios!'],
+      puteada_gana: ['¡Tomá, pibe! ¡Andá a cagar!', '¡Aprendé, boludo!'],
       truco: ['¡Truco, y se acabó la joda!', '¡Truco! A ver si te la bancás.', '¡Truco, pibe!'],
       retruco: ['¡Retruco, pibe!', '¡Retruco, y no se habla más!'],
       vale_cuatro: ['¡Vale cuatro, y que se arme!'],
@@ -137,6 +146,8 @@ export const CHARACTERS: Character[] = [
       eyeColor: '#4a3018',
     },
     phrases: {
+      puteada_pierde: ['¡Uh, boludo, la concha de la lora!', '¡Nooo, la puta madre!', '¡Qué orto que tenés, amigo!'],
+      puteada_gana: ['¡Tomá, gil!', '¡Te rompí, boludo!', '¡Chupate esa, amigo!'],
       truco: ['¡TRUCO, PAPÁ!', '¡Truco, y no arrugues!', '¡Truquito, truquito!'],
       retruco: ['¡Retruco, amigo! ¿Qué onda?', '¡Retruco, papá!'],
       quiero: ['¡Obvio que quiero, amigo!', '¡De una, quiero!'],
@@ -174,6 +185,8 @@ export const CHARACTERS: Character[] = [
       eyeColor: '#4b6a8a',
     },
     phrases: {
+      puteada_pierde: ['¡Ay, la puta madre! Perdón, nene.', '¡La concha de la lora! Ay, qué vergüenza.'],
+      puteada_gana: ['¡Tomá, pendejo! Ay, perdón, querido.', '¡Andá a lavar los platos, nene!'],
       truco: ['Truco, querido.', 'Ay... ¿y si te canto truco?', 'Truco, mi amor.'],
       quiero: ['Quiero, tesoro.', 'Ay, bueno, quiero.'],
       no_quiero: ['No, querido, no quiero.', 'Mejor no, que me sube la presión.'],
@@ -208,6 +221,8 @@ export const CHARACTERS: Character[] = [
       eyeColor: '#3a2a12',
     },
     phrases: {
+      puteada_pierde: ['¡Qué hacé\', culiado! ¡La puta madre!', '¡Ah, la pucha, qué cagada!', '¡Me cago en todo, loco!'],
+      puteada_gana: ['¡Tomá, culiado!', '¡Andá a cagar, hermanooo!'],
       truco: ['¡Trucooo, loco!', '¡Truco, hermano!', '¡Truco! ¡Mirá vo\'!'],
       quiero: ['¡Quiero, hermanooo!', '¡Y obvio que quiero, loco!'],
       no_quiero: ['¡Ni ahí, loco! No quiero.', 'Nooo, hermano, no quiero.'],
@@ -241,6 +256,8 @@ export const CHARACTERS: Character[] = [
       age: 'adulto',
     },
     phrases: {
+      puteada_pierde: ['Mierda.', 'Qué cagada.'],
+      puteada_gana: ['Andá a cagar.', 'Tomá.'],
       truco: ['Truco.', 'Truco. Pensalo bien.'],
       retruco: ['Retruco.'],
       vale_cuatro: ['Vale cuatro.'],
@@ -276,6 +293,7 @@ export const CHARACTERS: Character[] = [
       age: 'adulto',
     },
     phrases: {
+      puteada_pierde: ['¡La puta madre, otra vez!'],
       saludo: ['¡Bienvenido al bar! ¿Un truquito?', 'Sentate, que el Gallego trae unos cafés.'],
       victoria: ['¡Volvé cuando quieras, eh!'],
       derrota: ['¡Bien ahí! Tenés pasta para esto.'],
@@ -303,6 +321,7 @@ export const CHARACTERS: Character[] = [
       age: 'adulto',
     },
     phrases: {
+      puteada_pierde: ['¡Estadísticamente, la puta madre!', '¡Mierda, no estaba en mis cálculos!'],
       saludo: ['Estadísticamente, hoy gano yo.', 'Buenas tardes. ¿Repartimos?'],
       truco: ['Truco. Las probabilidades me acompañan.', '¡Truco!'],
       victoria: ['Los números no mienten.'],
@@ -332,6 +351,8 @@ export const CHARACTERS: Character[] = [
       age: 'adulto',
     },
     phrases: {
+      puteada_pierde: ['¡Se me quema el asado, la puta madre!', '¡La concha de la lora!'],
+      puteada_gana: ['¡Tomá, boludo, comete este chori!'],
       saludo: ['¿Jugamos mientras se hace el asado?', '¡Dale, que la parrilla no espera!'],
       truco: ['¡Truco, y pasame la sal!', '¡Truco!'],
       victoria: ['¡Ganador come primero!'],
@@ -363,6 +384,8 @@ export const CHARACTERS: Character[] = [
       eyeColor: '#3a5a3a',
     },
     phrases: {
+      puteada_pierde: ['¡La puta que te parió, qué suerte!', '¡Mierda, mierda, mierda!'],
+      puteada_gana: ['¡Tomá, nene! La casa no perdona.'],
       saludo: ['Pasá, que el cortado va por la casa.', 'En este café se juega en serio, ¿eh?'],
       envido: ['Envido, querido. ¿Te animás?', '¡Envido!'],
       victoria: ['La casa siempre gana, corazón.'],
@@ -393,6 +416,8 @@ export const CHARACTERS: Character[] = [
       earrings: true,
     },
     phrases: {
+      puteada_pierde: ['¡Andá a cagar, che!', '¡La puta madre, no puede ser!'],
+      puteada_gana: ['¡Tomá, porteño boludo!'],
       saludo: ['Acá en Mendoza se juega con vino y sin miedo.', '¿Vos sos el que viene ganando? A ver.'],
       truco: ['¡Truco! ¿Y ahora?', '¡Truco, che!'],
       victoria: ['¡Volvete a Buenos Aires!'],
@@ -422,6 +447,8 @@ export const CHARACTERS: Character[] = [
       age: 'mayor',
     },
     phrases: {
+      puteada_pierde: ['¡Por la puta, amigo!', '¡Me cago en la mula!'],
+      puteada_gana: ['¡Tome, amigo! ¡A cagar!'],
       saludo: ['Arrime nomás, amigo. La noche es larga.', 'Siéntese, que la ginebra está fresquita.'],
       truco: ['Truco, mi amigo.', 'Truco.'],
       victoria: ['Así es la vida en el campo, amigo.'],

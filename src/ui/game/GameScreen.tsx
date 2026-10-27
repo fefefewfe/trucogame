@@ -21,6 +21,7 @@ import { ActionBar, ResponsePanel } from './Actions';
 import { CardLayer } from './CardLayer';
 import { computeLayout } from './layout';
 import { MatchResultOverlay } from './MatchResult';
+import { MicButton } from './MicButton';
 import { CallBanner, HandSummaryCard, ReplayModal, RulesModal, StatusBar, Toasts } from './Overlays';
 import { Scoreboard } from './Scoreboard';
 import { SeatsLayer } from './Seats';
@@ -270,6 +271,10 @@ export function GameScreen() {
       <div className={`bottom-hud ${layout.portrait ? 'portrait' : ''}`} style={layout.portrait ? { bottom: layout.cardH + 26 } : { left: layout.w / 2 + layout.cardW * 1.75 }}>
         <ActionBar view={view} enabled={canAct} onAct={act} />
       </div>
+
+      {settings.microphone && view.seat >= 0 && (
+        <MicButton style={layout.portrait ? { right: 10, bottom: layout.cardH + 84 } : { left: 16, bottom: 16 }} />
+      )}
 
       <ResponsePanel view={view} seats={game.seats} enabled={canAct} onAct={act} />
       <CallBanner banner={game.banner} seats={game.seats} reduced={settings.animations === 'minimas'} />

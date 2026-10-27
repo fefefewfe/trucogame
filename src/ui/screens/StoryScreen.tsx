@@ -35,7 +35,7 @@ function Dialogue({ stage, onDone, onCancel }: { stage: StoryStage; onDone: () =
       setTyped(line.text.slice(0, i));
       if (i >= line.text.length) clearInterval(t);
     }, 22);
-    if (speakerChar && line.speaker !== 'yo') speak(speakerChar, 'saludo', line.text);
+    if (speakerChar && line.speaker !== 'yo') speak(speakerChar, 'dialogo', line.text);
     return () => clearInterval(t);
   }, [idx, line.text, line.speaker, speakerChar]);
 

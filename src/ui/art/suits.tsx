@@ -131,6 +131,47 @@ export function BastoSymbol({ ornate = false }: { ornate?: boolean }) {
   );
 }
 
+/** Espada larga como en la baraja tradicional: las espadas se entrecruzan en los números. */
+export function LongEspada() {
+  return (
+    <g>
+      <path d="M 0 -118 L 7.5 -100 L 6.5 58 L -6.5 58 L -7.5 -100 Z" fill="url(#g-steel-blue)" stroke="#1b2f57" strokeWidth={1.8} />
+      <line x1={0} y1={-104} x2={0} y2={54} stroke="#2a4a8a" strokeWidth={1.6} />
+      <line x1={-2.8} y1={-98} x2={-2.8} y2={54} stroke="#ffffff" strokeOpacity={0.55} strokeWidth={1.1} />
+      <path d="M -26 58 Q -33 63.5 -26 69 L 26 69 Q 33 63.5 26 58 Z" fill="url(#g-gold)" stroke="#7a4b0e" strokeWidth={1.6} />
+      <circle cx={-29} cy={63.5} r={4.5} fill="#c0392b" stroke="#6d1a12" strokeWidth={1} />
+      <circle cx={29} cy={63.5} r={4.5} fill="#c0392b" stroke="#6d1a12" strokeWidth={1} />
+      <rect x={-5} y={69} width={10} height={32} rx={2.5} fill="#b3242c" stroke="#4a0c08" strokeWidth={1.2} />
+      <path d="M -5 75 L 5 79 M -5 82 L 5 86 M -5 89 L 5 93 M -5 96 L 5 100" stroke="#5a0f0a" strokeWidth={1.1} />
+      <circle cx={0} cy={107} r={7.5} fill="url(#g-gold)" stroke="#7a4b0e" strokeWidth={1.4} />
+    </g>
+  );
+}
+
+/** Basto largo y nudoso para los números de bastos. */
+export function LongBasto() {
+  return (
+    <g>
+      <path
+        d="M -7 112 L -10 24 Q -19 -36 -13 -86 Q -5 -116 10 -110 Q 21 -96 17 -50 Q 13 0 9 24 L 7 112 Q 0 117 -7 112 Z"
+        fill="url(#g-basto)"
+        stroke="#2c1d0b"
+        strokeWidth={1.8}
+      />
+      <path d="M -14 -40 L -26 -50 L -22 -55 L -11 -46 Z" fill="#7a5a2a" stroke="#2c1d0b" strokeWidth={1.1} />
+      <ellipse cx={-24.5} cy={-52.5} rx={2.6} ry={3.2} fill="#e6c38a" stroke="#2c1d0b" strokeWidth={0.8} />
+      <path d="M 15 -70 L 27 -78 L 28 -72 L 16 -64 Z" fill="#7a5a2a" stroke="#2c1d0b" strokeWidth={1.1} />
+      <ellipse cx={28} cy={-75} rx={2.4} ry={3} fill="#e6c38a" stroke="#2c1d0b" strokeWidth={0.8} />
+      <path d="M 10 2 L 20 -5 L 21 0 L 11 7 Z" fill="#7a5a2a" stroke="#2c1d0b" strokeWidth={1} />
+      <ellipse cx={2} cy={-80} rx={4} ry={2.6} fill="none" stroke="#2c1d0b" strokeWidth={1.2} />
+      <ellipse cx={-5} cy={-22} rx={3} ry={2} fill="none" stroke="#2c1d0b" strokeWidth={1.1} />
+      <ellipse cx={3} cy={40} rx={2.6} ry={1.8} fill="none" stroke="#2c1d0b" strokeWidth={1} />
+      <path d="M -6 -100 Q -13 -40 -4 20 M 6 -98 Q 11 -46 4 20 M -2 30 L -2 108 M 3 30 L 3 108" stroke="#2c1d0b" strokeOpacity={0.4} strokeWidth={1} fill="none" />
+      <path d="M -10 -84 Q -15 -50 -10 -20" stroke="#d6f0a8" strokeOpacity={0.5} strokeWidth={2.6} fill="none" strokeLinecap="round" />
+    </g>
+  );
+}
+
 export function SuitSymbol({ suit, ornate }: { suit: Suit; ornate?: boolean }) {
   switch (suit) {
     case 'oro':

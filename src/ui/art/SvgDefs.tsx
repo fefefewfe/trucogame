@@ -43,6 +43,12 @@ export function SvgDefs() {
           <stop offset="0.55" stopColor="#c9d6ec" />
           <stop offset="1" stopColor="#6d83aa" />
         </linearGradient>
+        <linearGradient id="g-steel-blue" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor="#3f64b0" />
+          <stop offset="0.42" stopColor="#c9dbff" />
+          <stop offset="0.55" stopColor="#7d9ee0" />
+          <stop offset="1" stopColor="#2a4a8a" />
+        </linearGradient>
         <linearGradient id="g-guard" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#4f86e0" />
           <stop offset="1" stopColor="#1f468f" />

@@ -14,7 +14,7 @@ import type { PlayerView } from '../engine/view';
 import { getCharacter, pickPhrase, type PhraseKey } from '../game/characters';
 import { sfx, type CallSound } from '../audio/sfx';
 import { speak } from '../audio/voice';
-import { paceFactor } from './settings';
+import { paceFactor, useSettings } from './settings';
 import type { Expression } from '../ui/art/Avatar';
 
 export interface SeatMeta {
@@ -97,7 +97,8 @@ interface GameState {
 
   begin(opts: { driver: Driver; seats: SeatMeta[]; humanSeat: number; view: PlayerView; tableId: string; clothId: string }): void;
   ingest(events: GameEvent[], view: PlayerView): void;
-  humanAct(action: Action): void;
+  humanAct(action: Action, opts?: { spokenText?: string }): void;
+  notify(text: string, good?: boolean | null): void;
   setThinking(seat: number | null): void;
   continueHand(): void;
   setPaused(paused: boolean): void;
@@ -112,6 +113,8 @@ let uid = 1;
 let session = 0;
 let queue: GameEvent[] = [];
 let running = false;
+/** Texto dicho por micrófono: reemplaza la frase del personaje y no se reproduce con voz. */
+const spokenOverride = new Map<number, string>();
 const exprTimers = new Map<number, ReturnType<typeof setTimeout>>();
 const bubbleTimers = new Map<number, ReturnType<typeof setTimeout>>();
 
@@ -180,6 +183,12 @@ export const useGame = create<GameState>()((set, get) => {
     const meta = get().seats[seat];
     if (!meta) return;
     const ch = getCharacter(meta.characterId);
+    const spoken = spokenOverride.get(seat);
+    if (spoken !== undefined && (kind === 'canto' || kind === 'respuesta')) {
+      spokenOverride.delete(seat);
+      showBubble(seat, `🎤 ${spoken}`, kind);
+      return;
+    }
     const text = pickPhrase(ch, key, vars);
     showBubble(seat, text, kind);
     speak(ch, key, text);
@@ -280,6 +289,10 @@ export const useGame = create<GameState>()((set, get) => {
       case 'envido_result': {
         const good = ev.winnerTeam === humanTeam();
         toast(`${ev.accepted ? 'Envido' : 'Envido no querido'}: +${ev.points} ${teamName(ev.winnerTeam)}`, good);
+        if (ev.accepted && ev.points >= 3 && useSettings.getState().puteadas) {
+          const loserBot = get().seats.findIndex((m, i) => !m.human && teamOf(i) !== ev.winnerTeam);
+          if (loserBot >= 0 && Math.random() < 0.45) setTimeout(() => isCurrent(s) && phrase(loserBot, 'puteada_pierde', 'frase'), 350);
+        }
         await sleep(650);
         return;
       }
@@ -324,7 +337,12 @@ export const useGame = create<GameState>()((set, get) => {
         losers.forEach((i) => setExpression(i, getCharacter(get().seats[i].characterId).id === 'tano' ? 'angry' : 'sad', 2600));
         const botWinner = winners.find((i) => isBot(i));
         const botLoser = losers.find((i) => isBot(i));
-        if (ev.reason === 'no_quiero' && botWinner !== undefined) {
+        const strong = useSettings.getState().puteadas;
+        if (strong && botLoser !== undefined && Math.random() < (ev.points >= 2 ? 0.6 : 0.35)) {
+          phrase(botLoser, 'puteada_pierde', 'frase');
+        } else if (strong && botWinner !== undefined && Math.random() < 0.25) {
+          phrase(botWinner, 'puteada_gana', 'frase');
+        } else if (ev.reason === 'no_quiero' && botWinner !== undefined) {
           const caller = [...log].reverse().find((e) => e.type === 'call');
           const who = caller && caller.type === 'call' && teamOf(caller.seat) === ev.winnerTeam ? caller.seat : botWinner;
           if (isBot(who) && Math.random() < 0.65) phrase(who, 'no_te_animas', 'frase');
@@ -432,12 +450,19 @@ export const useGame = create<GameState>()((set, get) => {
       if (!running) void run(session);
     },
 
-    humanAct(action) {
+    humanAct(action, opts) {
       const st = get();
       if (!st.view || st.presenting || st.paused || st.outcome) return;
       const legal = st.view.legalActions.some((a) => JSON.stringify(a) === JSON.stringify(action));
       if (!legal) return;
+      if (opts?.spokenText && (action.type === 'call' || action.type === 'respond' || action.type === 'mazo')) {
+        spokenOverride.set(st.view.seat, opts.spokenText);
+      }
       st.driver?.submit(action);
+    },
+
+    notify(text, good = null) {
+      toast(text, good);
     },
 
     setThinking(seat) {
