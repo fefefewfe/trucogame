@@ -18,6 +18,7 @@ import type { PlayerView } from '../engine/view';
 import { Analysis } from './analysis';
 import { trucoFoldRate, type BotMemory } from './memory';
 import { botParams, type BotParams, type BotProfile } from './profiles';
+import type { SenaKnowledge } from '../game/senas';
 
 export interface BotDecision {
   action: Action;
@@ -68,7 +69,13 @@ function avgFoldRate(ctx: Ctx): number {
   return seats.reduce((acc, s) => acc + trucoFoldRate(ctx.memory, s), 0) / seats.length;
 }
 
-export function decide(view: PlayerView, profile: BotProfile, memory: BotMemory | null, random: () => number): BotDecision {
+export function decide(
+  view: PlayerView,
+  profile: BotProfile,
+  memory: BotMemory | null,
+  random: () => number,
+  senas: SenaKnowledge[] = [],
+): BotDecision {
   const legal = view.legalActions;
   if (legal.length === 0) throw new Error('El bot no tiene acciones legales');
   const params = botParams(profile);
@@ -77,7 +84,7 @@ export function decide(view: PlayerView, profile: BotProfile, memory: BotMemory 
   const ctx: Ctx = {
     view,
     params,
-    analysis: new Analysis(view, params, memory, random),
+    analysis: new Analysis(view, params, memory, random, senas),
     random,
     memory: params.memory ? memory : null,
     myTeam,

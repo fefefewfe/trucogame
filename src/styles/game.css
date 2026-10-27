@@ -1485,3 +1485,140 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+.senas-toggle.on {
+  box-shadow: 0 3px 0 #120904, 0 0 0 3px var(--celeste), inset 0 0 0 2px rgba(232, 184, 74, 0.45);
+}
+
+.icon-btn.small {
+  width: 32px;
+  height: 32px;
+  font-size: 14px;
+}
+
+.senas-panel {
+  position: absolute;
+  top: calc(62px + var(--safe-top));
+  right: 10px;
+  z-index: 140;
+  width: min(460px, calc(100vw - 20px));
+  max-height: calc(100vh - 90px);
+  overflow-y: auto;
+  background: linear-gradient(180deg, rgba(48, 28, 16, 0.97), rgba(22, 12, 6, 0.97));
+  border: 1px solid rgba(116, 172, 223, 0.6);
+  border-radius: 14px;
+  padding: 10px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+}
+
+.senas-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-ui);
+}
+
+.senas-head b {
+  font-size: 18px;
+  color: var(--gold-light);
+}
+
+.senas-head span {
+  flex: 1;
+  color: var(--cream-dim);
+  font-size: 14px;
+}
+
+.senas-warn {
+  font-size: 13px;
+  color: #ffd2a0;
+  margin: 4px 0 8px;
+}
+
+.senas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 6px;
+}
+
+.sena-btn {
+  border: none;
+  border-radius: 12px;
+  background: rgba(255, 240, 210, 0.07);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 4px;
+  text-align: center;
+  min-height: 44px;
+}
+
+.sena-btn:hover:not(:disabled) {
+  background: rgba(116, 172, 223, 0.2);
+}
+
+.sena-btn:disabled {
+  opacity: 0.4;
+}
+
+.sena-label {
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: 14px;
+  line-height: 1.1;
+}
+
+.sena-btn small {
+  font-size: 11px;
+  color: var(--cream-dim);
+  line-height: 1.15;
+}
+
+.sena-chips {
+  position: absolute;
+  top: calc(100% + 40px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+  white-space: nowrap;
+  z-index: 5;
+}
+
+.sena-chip {
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: 11px;
+  background: rgba(31, 79, 143, 0.92);
+  color: #fff;
+  border-radius: 999px;
+  padding: 1px 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.sena-chip.rival {
+  background: rgba(165, 42, 34, 0.92);
+}
+
+.seats-overlay .seat {
+  pointer-events: none;
+}
+
+.nameplate.nameplate-left {
+  top: 50%;
+  left: auto;
+  right: calc(100% + 8px);
+  transform: translateY(-50%);
+  text-align: right;
+}
+
+.nameplate.nameplate-left .nameplate-meta {
+  justify-content: flex-end;
+}
+
+.toasts {
+  top: 24%;
+}

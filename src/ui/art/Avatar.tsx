@@ -25,15 +25,38 @@ export interface AvatarLook {
   eyeColor?: string;
 }
 
-export type Expression = 'neutral' | 'happy' | 'laugh' | 'angry' | 'surprised' | 'smug' | 'sad' | 'thinking';
+export type Expression =
+  | 'neutral'
+  | 'happy'
+  | 'laugh'
+  | 'angry'
+  | 'surprised'
+  | 'smug'
+  | 'sad'
+  | 'thinking'
+  // gestos de las señas del truco
+  | 'cejas'
+  | 'guino'
+  | 'boca_der'
+  | 'boca_izq'
+  | 'labio'
+  | 'beso'
+  | 'boca_abierta'
+  | 'ojos_cerrados'
+  | 'cachetes'
+  | 'lengua';
 
 interface ExprShape {
   browL: number;
   browR: number;
   browY: number;
+  /** Apertura de los ojos (0 = sonrisa cerrada, -1 = ojo cerrado). */
   eye: number;
-  mouth: 'flat' | 'smile' | 'open' | 'frown' | 'o' | 'smirk' | 'sad' | 'side';
+  eyeL?: number;
+  eyeR?: number;
+  mouth: 'flat' | 'smile' | 'open' | 'frown' | 'o' | 'smirk' | 'sad' | 'side' | 'twistR' | 'twistL' | 'bite' | 'kiss' | 'yawn' | 'puff' | 'tongue';
   look: [number, number];
+  cheeks?: boolean;
 }
 
 const EXPR: Record<Expression, ExprShape> = {
@@ -45,6 +68,16 @@ const EXPR: Record<Expression, ExprShape> = {
   smug: { browL: -10, browR: 4, browY: -1, eye: 0.55, mouth: 'smirk', look: [1.5, 0] },
   sad: { browL: -14, browR: 14, browY: -1, eye: 0.85, mouth: 'sad', look: [0, 1.5] },
   thinking: { browL: -8, browR: 2, browY: -2, eye: 0.9, mouth: 'side', look: [2.5, -2] },
+  cejas: { browL: -8, browR: 8, browY: -12, eye: 1.2, mouth: 'flat', look: [0, 0] },
+  guino: { browL: 6, browR: -3, browY: -2, eye: 1, eyeL: -1, mouth: 'smirk', look: [0, 0] },
+  boca_der: { browL: 2, browR: -2, browY: 0, eye: 0.95, mouth: 'twistR', look: [-1.5, 0] },
+  boca_izq: { browL: 2, browR: -2, browY: 0, eye: 0.95, mouth: 'twistL', look: [1.5, 0] },
+  labio: { browL: -4, browR: 4, browY: -2, eye: 0.85, mouth: 'bite', look: [0, 0] },
+  beso: { browL: -4, browR: 4, browY: -3, eye: 0.75, mouth: 'kiss', look: [0, 0] },
+  boca_abierta: { browL: -4, browR: 4, browY: -6, eye: 0.6, mouth: 'yawn', look: [0, 0] },
+  ojos_cerrados: { browL: 0, browR: 0, browY: 1, eye: 1, eyeL: -1, eyeR: -1, mouth: 'flat', look: [0, 0] },
+  cachetes: { browL: -3, browR: 3, browY: -3, eye: 1.05, mouth: 'puff', look: [0, 0], cheeks: true },
+  lengua: { browL: -6, browR: 4, browY: -2, eye: 0.8, mouth: 'tongue', look: [0, 0] },
 };
 
 const LINE = '#2a170c';
@@ -74,15 +107,53 @@ function Mouth({ kind, skin, feminine }: { kind: ExprShape['mouth']; skin: strin
       return <path d="M 89 129 Q 100 123 111 129" stroke={lip} strokeWidth={2.6} fill="none" strokeLinecap="round" />;
     case 'side':
       return <path d="M 95 126 Q 104 125 111 122" stroke={lip} strokeWidth={2.6} fill="none" strokeLinecap="round" />;
+    case 'twistR':
+      return <path d="M 84 119 Q 94 129 108 127" stroke={lip} strokeWidth={3} fill="none" strokeLinecap="round" />;
+    case 'twistL':
+      return <path d="M 92 127 Q 106 129 116 119" stroke={lip} strokeWidth={3} fill="none" strokeLinecap="round" />;
+    case 'bite':
+      return (
+        <g>
+          <path d="M 87 124 Q 100 133 113 124" stroke={feminine ? lip : '#c9605a'} strokeWidth={4.5} fill="none" strokeLinecap="round" />
+          <rect x={92.5} y={119.5} width={15} height={5.5} rx={1.6} fill="#fffaf2" stroke={LINE} strokeWidth={0.8} />
+          <line x1={100} y1={119.8} x2={100} y2={124.8} stroke="#d8cfc0" strokeWidth={0.8} />
+        </g>
+      );
+    case 'kiss':
+      return (
+        <g>
+          <ellipse cx={101} cy={126} rx={5.5} ry={5} fill={feminine ? lip : '#c9605a'} stroke={LINE} strokeWidth={1.2} />
+          <path d="M 97.5 126 Q 101 124.5 104.5 126" stroke={LINE} strokeWidth={1} fill="none" />
+        </g>
+      );
+    case 'yawn':
+      return (
+        <g>
+          <ellipse cx={100} cy={128} rx={9.5} ry={12} fill="#5a1414" stroke={lip} strokeWidth={2} />
+          <ellipse cx={100} cy={135} rx={6} ry={3.5} fill="#e0605e" />
+        </g>
+      );
+    case 'puff':
+      return <path d="M 96 126 Q 100 127.5 104 126" stroke={lip} strokeWidth={2.6} fill="none" strokeLinecap="round" />;
+    case 'tongue':
+      return (
+        <g>
+          <path d="M 96 124 Q 101 137 106 124 Z" fill="#e0605e" stroke="#9a3030" strokeWidth={1} />
+          <path d="M 88 123 Q 100 127 112 123" stroke={lip} strokeWidth={2.6} fill="none" strokeLinecap="round" />
+        </g>
+      );
   }
 }
 
-function Eye({ cx, shape, color, blink, skin }: { cx: number; shape: ExprShape; color: string; blink: boolean; skin: string }) {
+function Eye({ cx, shape, open, color, blink, skin }: { cx: number; shape: ExprShape; open: number; color: string; blink: boolean; skin: string }) {
   const cy = 94;
-  if (shape.eye === 0) {
+  if (open === -1) {
+    return <path d={`M ${cx - 8.5} ${cy} Q ${cx} ${cy + 4} ${cx + 8.5} ${cy}`} stroke={LINE} strokeWidth={2.8} fill="none" strokeLinecap="round" />;
+  }
+  if (open === 0) {
     return <path d={`M ${cx - 8} ${cy + 1} Q ${cx} ${cy - 7} ${cx + 8} ${cy + 1}`} stroke={LINE} strokeWidth={2.8} fill="none" strokeLinecap="round" />;
   }
-  const ry = 6.2 * shape.eye;
+  const ry = 6.2 * open;
   const [lx, ly] = shape.look;
   return (
     <g style={{ transformOrigin: `${cx}px ${cy}px`, transform: `scaleY(${blink ? 0.08 : 1})`, transition: 'transform 70ms ease' }}>
@@ -90,7 +161,7 @@ function Eye({ cx, shape, color, blink, skin }: { cx: number; shape: ExprShape; 
       <circle cx={cx + lx} cy={cy + ly} r={Math.min(4.6, ry)} fill={color} />
       <circle cx={cx + lx} cy={cy + ly} r={Math.min(2.3, ry * 0.5)} fill="#120a05" />
       <circle cx={cx + lx - 1.6} cy={cy + ly - 1.8} r={1.3} fill="#ffffff" />
-      {shape.eye < 0.8 && (
+      {open < 0.8 && (
         <path d={`M ${cx - 9} ${cy - ry - 1} L ${cx + 9} ${cy - ry - 1} L ${cx + 9} ${cy - ry * 0.25} Q ${cx} ${cy - ry * 0.55} ${cx - 9} ${cy - ry * 0.25} Z`} fill={skin} opacity={0.95} />
       )}
       <path d={`M ${cx - 8.5} ${cy - ry * 0.6} Q ${cx} ${cy - ry - 1.6} ${cx + 8.5} ${cy - ry * 0.6}`} stroke={LINE} strokeWidth={1.8} fill="none" strokeLinecap="round" />
@@ -495,8 +566,14 @@ export const Avatar = memo(function Avatar({
             )}
             <circle cx={74} cy={112} r={8} fill="#ff7a7a" opacity={expression === 'angry' ? 0.45 : 0.22} />
             <circle cx={126} cy={112} r={8} fill="#ff7a7a" opacity={expression === 'angry' ? 0.45 : 0.22} />
-            <Eye cx={82} shape={shape} color={eyeColor} blink={blink} skin={skin} />
-            <Eye cx={118} shape={shape} color={eyeColor} blink={blink} skin={skin} />
+            {shape.cheeks && (
+              <g fill={skin} stroke={shade(skin, -0.3)} strokeWidth={1.2}>
+                <ellipse cx={64} cy={114} rx={15} ry={13} />
+                <ellipse cx={136} cy={114} rx={15} ry={13} />
+              </g>
+            )}
+            <Eye cx={82} shape={shape} open={shape.eyeL ?? shape.eye} color={eyeColor} blink={blink} skin={skin} />
+            <Eye cx={118} shape={shape} open={shape.eyeR ?? shape.eye} color={eyeColor} blink={blink} skin={skin} />
             {look.feminine && shape.eye > 0 && (
               <g stroke={LINE} strokeWidth={1.6} strokeLinecap="round">
                 <path d="M 73 89 l -4 -3 M 127 89 l 4 -3" />

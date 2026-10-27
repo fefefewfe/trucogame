@@ -11,6 +11,16 @@ import { ScreenHeader } from '../common/ProfileChip';
 
 const DEMO: Expression[] = ['happy', 'smug', 'laugh', 'surprised', 'angry', 'thinking', 'sad'];
 
+const EXPR_LABEL: Partial<Record<Expression, string>> = {
+  happy: 'Contento',
+  smug: 'Canchero',
+  laugh: 'Festejo',
+  surprised: 'Sorpresa',
+  angry: 'Enojo',
+  thinking: 'Pensando',
+  sad: 'Derrota',
+};
+
 function unlockText(c: Character): string {
   if (c.unlock.kind === 'inicial') return 'Disponible';
   if (c.unlock.kind === 'historia') return `Se desbloquea al ganar "${storyStage(c.unlock.stage).title}"`;
@@ -86,7 +96,7 @@ export function CharactersScreen() {
               <div className="cd-expr">
                 {DEMO.map((e) => (
                   <button key={e} className={`chip-btn ${expr === e ? 'on' : ''}`} onClick={() => setExpr(e)}>
-                    {{ happy: 'Contento', smug: 'Canchero', laugh: 'Festejo', surprised: 'Sorpresa', angry: 'Enojo', thinking: 'Pensando', sad: 'Derrota', neutral: 'Neutral' }[e]}
+                    {EXPR_LABEL[e]}
                   </button>
                 ))}
               </div>

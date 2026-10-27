@@ -22,6 +22,7 @@ import { CardLayer } from './CardLayer';
 import { computeLayout } from './layout';
 import { MatchResultOverlay } from './MatchResult';
 import { MicButton } from './MicButton';
+import { SenasPanel } from './SenasPanel';
 import { CallBanner, HandSummaryCard, ReplayModal, RulesModal, StatusBar, Toasts } from './Overlays';
 import { Scoreboard } from './Scoreboard';
 import { SeatsLayer } from './Seats';
@@ -75,6 +76,7 @@ export function GameScreen() {
   const [replayOpen, setReplayOpen] = useState(false);
   const [rulesOpen, setRulesOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [senasOpen, setSenasOpen] = useState(false);
   const [confirmQuit, setConfirmQuit] = useState(false);
   const reduced = settings.animations !== 'completas';
   useAutoPerformance();
@@ -113,8 +115,9 @@ export function GameScreen() {
     );
   }
 
-  const myTeam = teamOf(view.seat);
+  const myTeam = teamOf(view.seat < 0 ? 0 : view.seat);
   const canAct = canHumanAct(game);
+  const teamGame = view.config.numPlayers >= 4;
   const table = TABLES[game.tableId] ?? TABLES.bodegon;
   const cloth = CLOTHS[game.clothId] ?? CLOTHS.verde;
   const backStyle = cosmeticValue(profile.equipped.reverso) as CardBackStyle;
@@ -205,6 +208,8 @@ export function GameScreen() {
           actingSeat={actingSeat}
           frame={frame}
           deadline={game.turnDeadline}
+          knownSenas={game.knownSenas}
+          part="base"
         />
         <CardLayer
           view={view}
@@ -218,6 +223,19 @@ export function GameScreen() {
           highlight={game.bazaHighlight}
           reduced={settings.animations === 'minimas'}
           onPlay={(cardId) => act({ type: 'play', seat: view.seat, cardId })}
+        />
+        <SeatsLayer
+          view={view}
+          layout={layout}
+          seats={game.seats}
+          expressions={game.expressions}
+          bubbles={game.bubbles}
+          thinkingSeat={game.thinkingSeat}
+          actingSeat={actingSeat}
+          frame={frame}
+          deadline={game.turnDeadline}
+          knownSenas={game.knownSenas}
+          part="overlay"
         />
       </motion.div>
 
@@ -237,7 +255,31 @@ export function GameScreen() {
             </button>
           </>
         )}
-        <button className="icon-btn" onClick={() => setChatOpen((o) => !o)} aria-label="Mensajes rápidos" title="Mensajes rápidos">
+        {teamGame && view.seat >= 0 && game.driver?.sena && (
+          <button
+            className={`icon-btn senas-toggle ${senasOpen ? 'on' : ''}`}
+            onClick={() => {
+              setChatOpen(false);
+              setSenasOpen((o) => !o);
+            }}
+            aria-label="Hacer señas"
+            title="Señas a tu compañero"
+          >
+            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+              <path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12z" fill="none" stroke="currentColor" strokeWidth="2" />
+              <circle cx="12" cy="12" r="3" fill="currentColor" />
+            </svg>
+          </button>
+        )}
+        <button
+          className="icon-btn"
+          onClick={() => {
+            setSenasOpen(false);
+            setChatOpen((o) => !o);
+          }}
+          aria-label="Mensajes rápidos"
+          title="Mensajes rápidos"
+        >
           💬
         </button>
         <button className="icon-btn" onClick={() => game.setPaused(true)} aria-label="Pausa" title="Pausa">
@@ -265,6 +307,15 @@ export function GameScreen() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <SenasPanel
+        open={senasOpen && view.phase === 'playing'}
+        characterId={game.seats[game.humanSeat]?.characterId ?? profile.characterId}
+        left={game.driver?.senasLeft?.() ?? 0}
+        flor={view.config.flor}
+        onSena={(s) => game.driver?.sena?.(s)}
+        onClose={() => setSenasOpen(false)}
+      />
 
       <Toasts toasts={game.toasts} />
 

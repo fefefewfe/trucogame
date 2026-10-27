@@ -2,7 +2,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { teamOf } from '../../engine/match';
 import type { PlayerView } from '../../engine/view';
 import { getCharacter } from '../../game/characters';
-import type { Bubble, SeatMeta } from '../../store/game';
+import type { Bubble, KnownSena, SeatMeta } from '../../store/game';
+import { senaDef } from '../../game/senas';
 import { Avatar, type Expression } from '../art/Avatar';
 import type { Layout } from './layout';
 
@@ -16,6 +17,8 @@ export function SeatsLayer({
   actingSeat,
   frame,
   deadline,
+  knownSenas,
+  part,
 }: {
   view: PlayerView;
   layout: Layout;
@@ -26,10 +29,13 @@ export function SeatsLayer({
   actingSeat: number | null;
   frame: string;
   deadline: number | null;
+  knownSenas: KnownSena[];
+  /** 'base' dibuja los avatares (debajo de las cartas); 'overlay' los nombres y globos (encima). */
+  part: 'base' | 'overlay';
 }) {
   const me = view.seat;
   return (
-    <div className="seats-layer">
+    <div className={`seats-layer seats-${part}`}>
       {layout.seats.map((s) => {
         const meta = seats[s.seat];
         if (!meta) return null;
@@ -48,12 +54,15 @@ export function SeatsLayer({
             className={`seat seat-vis-${s.vis} ${acting ? 'is-acting' : ''} ${partner ? 'is-partner' : ''} ${s.seat === me ? 'is-me' : ''} ${meta.connected ? '' : 'is-offline'}`}
             style={{ left: s.avatar.x, top: s.avatar.y, width: size, height: size }}
           >
-            <div className={`avatar-ring frame-${s.seat === me ? frame : 'madera'} team-${teamOf(s.seat) === teamOf(me) ? 'us' : 'them'}`}>
-              {acting && <div className="turn-glow" />}
-              <Avatar look={ch.look} expression={expressions[s.seat] ?? 'neutral'} size="100%" />
-              {deadline && acting && <TurnTimer deadline={deadline} />}
-            </div>
-            <div className={`nameplate ${s.vis === 0 && layout.portrait ? 'nameplate-side' : ''}`}>
+            {part === 'base' ? (
+              <div className={`avatar-ring frame-${s.seat === me ? frame : 'madera'} team-${teamOf(s.seat) === teamOf(me) ? 'us' : 'them'}`}>
+                {acting && <div className="turn-glow" />}
+                <Avatar look={ch.look} expression={expressions[s.seat] ?? 'neutral'} size="100%" />
+                {deadline && acting && <TurnTimer deadline={deadline} />}
+              </div>
+            ) : (
+              <>
+            <div className={`nameplate ${s.vis === 0 && layout.portrait ? 'nameplate-side' : ''} ${s.vis !== 0 && s.avatar.y < layout.h * 0.25 ? 'nameplate-left' : ''}`}>
               <span className="nameplate-name">{meta.name}</span>
               <span className="nameplate-meta">
                 <span className="lvl">Nv {meta.level}</span>
@@ -61,6 +70,17 @@ export function SeatsLayer({
                 {!meta.connected && <span className="offline-tag">desconectado</span>}
               </span>
             </div>
+            {knownSenas.some((k) => k.seat === s.seat) && (
+              <div className="sena-chips">
+                {knownSenas
+                  .filter((k) => k.seat === s.seat)
+                  .map((k) => (
+                    <span key={k.id} className={`sena-chip ${k.rival ? 'rival' : ''}`} title={k.rival ? 'Seña que le pescaste' : 'Seña de tu compañero'}>
+                      👁 {senaDef(k.sena).label}
+                    </span>
+                  ))}
+              </div>
+            )}
             <div className="seat-chips">
               {isMano && <span className="chip chip-mano" title="Es mano: empieza y gana los empates">MANO</span>}
               {isDealer && <span className="chip chip-dealer" title="Reparte">REPARTE</span>}
@@ -95,6 +115,8 @@ export function SeatsLayer({
                 </motion.div>
               )}
             </AnimatePresence>
+              </>
+            )}
           </div>
         );
       })}

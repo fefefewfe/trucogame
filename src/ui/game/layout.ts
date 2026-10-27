@@ -59,12 +59,14 @@ export function computeLayout(w: number, h: number, n: number, humanSeat: number
   const tableScale = portrait ? (n === 2 ? 0.72 : n === 4 ? 0.6 : 0.5) : n === 2 ? 0.72 : n === 4 ? 0.58 : 0.48;
   const tableW = Math.round(cardW * tableScale);
   const tableH = Math.round(tableW * 1.55);
-  const backW = Math.round(cardW * (n === 6 ? 0.36 : 0.44));
+  const backW = Math.round(cardW * (n === 6 ? 0.34 : n === 4 ? 0.38 : 0.42));
   const backH = Math.round(backW * 1.55);
   const handY = h - cardH * 0.5 - (portrait ? 14 : 18);
   const center: Point = { x: w / 2, y: portrait ? h * 0.43 : h * 0.42 };
 
-  const avatarBase = portrait ? Math.min(64, w * 0.15) : Math.min(84, h * 0.1);
+  const avatarBase = portrait
+    ? Math.min(n === 2 ? 92 : n === 4 ? 74 : 60, w * (n === 2 ? 0.24 : 0.18))
+    : Math.min(n === 2 ? 132 : n === 4 ? 112 : 92, h * (n === 2 ? 0.15 : n === 4 ? 0.125 : 0.1));
   const arx = portrait ? w * 0.39 : Math.min(w * 0.42, h * 0.95);
   const ary = portrait ? h * 0.255 : h * 0.33;
 
@@ -74,7 +76,7 @@ export function computeLayout(w: number, h: number, n: number, humanSeat: number
     const angle = 90 - vis * (360 / n);
     const cos = Math.cos(rad(angle));
     const sin = Math.sin(rad(angle));
-    const avatarSize = vis === 0 ? avatarBase * (portrait ? 0.8 : 0.95) : avatarBase * (n === 6 ? 0.85 : 1);
+    const avatarSize = vis === 0 ? Math.min(avatarBase, portrait ? 64 : 96) : avatarBase;
     let avatar: Point;
     if (vis === 0) {
       avatar = portrait
@@ -83,17 +85,19 @@ export function computeLayout(w: number, h: number, n: number, humanSeat: number
     } else {
       avatar = { x: center.x + arx * cos, y: center.y + ary * sin };
       if (n === 6 && Math.abs(sin) < 0.9) avatar.y += sin > 0 ? -h * 0.04 : h * 0.02;
+      // Que no se corte arriba (deja lugar para las etiquetas de "mano" y "reparte").
+      avatar.y = Math.max(avatar.y, avatarSize * 0.5 + (portrait ? 64 : 26));
     }
     const inward = { x: -cos, y: -sin };
     let hand: Point;
     if (vis !== 0 && Math.abs(sin) > 0.7) {
-      // Arriba: las cartas tapadas van al costado del avatar para no tapar el nombre.
-      hand = { x: avatar.x + avatarSize * (portrait ? 1.0 : 1.15), y: avatar.y + avatarSize * 0.1 };
+      // Arriba: el personaje sostiene sus cartas a un costado del pecho.
+      hand = { x: avatar.x + avatarSize * 0.66, y: avatar.y + avatarSize * 0.14 };
     } else {
-      const handDist = avatarSize * 1.4;
-      hand = { x: avatar.x + inward.x * handDist, y: avatar.y + inward.y * handDist - avatarSize * 0.05 };
+      // A los costados: las cartas en la mano, inclinadas hacia la mesa.
+      hand = { x: avatar.x + inward.x * avatarSize * 0.72, y: avatar.y + avatarSize * 0.04 };
     }
-    const handRot = vis !== 0 && Math.abs(sin) > 0.7 ? 8 : angle - 90 + 180;
+    const handRot = vis !== 0 && Math.abs(sin) > 0.7 ? 12 : cos > 0 ? -18 : 18;
     seats.push({ seat, vis, angle, avatar, avatarSize, hand, handRot, inward });
   }
 

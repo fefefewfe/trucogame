@@ -13,6 +13,7 @@ import type { Team } from '../engine/types';
 import type { PlayerView } from '../engine/view';
 import { envidoBluffRate, trucoBluffRate, type BotMemory } from './memory';
 import type { BotParams } from './profiles';
+import { senaDef, type SenaKnowledge, type SenaId } from '../game/senas';
 
 interface SeatInfo {
   seat: number;
@@ -21,6 +22,7 @@ interface SeatInfo {
   envidoExact?: number;
   envidoMax?: number;
   flor?: boolean;
+  senas?: SenaId[];
   combos?: Card[][];
 }
 
@@ -118,12 +120,16 @@ export class Analysis {
   private cachedWin: number | null = null;
   private cachedEnvido: number | null = null;
 
-  constructor(view: PlayerView, params: BotParams, memory: BotMemory | null, random: () => number) {
+  /** Señas que este jugador vio en la mano (de su compañero o pescadas a los rivales). */
+  readonly senas: SenaKnowledge[];
+
+  constructor(view: PlayerView, params: BotParams, memory: BotMemory | null, random: () => number, senas: SenaKnowledge[] = []) {
     this.view = view;
     this.params = params;
     this.memory = params.memory ? memory : null;
     this.random = random;
     this.myTeam = teamOf(view.seat);
+    this.senas = senas;
   }
 
   private seatInfos(): SeatInfo[] {
@@ -133,7 +139,8 @@ export class Analysis {
     for (let seat = 0; seat < v.config.numPlayers; seat++) {
       if (seat === v.seat) continue;
       const played = h.bazas.flatMap((b) => b.plays.filter((p) => p.seat === seat).map((p) => p.card));
-      infos.push({ seat, played, unknown: h.cardCounts[seat] });
+      const senas = this.senas.filter((k) => k.seat === seat).map((k) => k.sena);
+      infos.push({ seat, played, unknown: h.cardCounts[seat], senas: senas.length > 0 ? senas : undefined });
     }
     if (!this.params.inference) return infos;
 
@@ -170,6 +177,7 @@ export class Analysis {
     if (info.envidoExact !== undefined && envidoPoints(dealt) !== info.envidoExact) return false;
     if (info.envidoMax !== undefined && envidoPoints(dealt) > info.envidoMax) return false;
     if (info.flor !== undefined && hasFlor(dealt) !== info.flor) return false;
+    if (info.senas && !info.senas.every((id) => senaDef(id).matches(dealt))) return false;
     return true;
   }
 
@@ -218,7 +226,7 @@ export class Analysis {
     const infos = this.seatInfos();
 
     for (const info of infos) {
-      const constrained = info.envidoExact !== undefined || info.envidoMax !== undefined || info.flor !== undefined;
+      const constrained = info.envidoExact !== undefined || info.envidoMax !== undefined || info.flor !== undefined || info.senas !== undefined;
       if (!constrained || info.unknown === 0) continue;
       const combos = combinations(pool, info.unknown).filter((c) => this.satisfies(info, c));
       if (combos.length > 0) info.combos = combos;

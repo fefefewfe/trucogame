@@ -16,6 +16,7 @@ import { sfx, type CallSound } from '../audio/sfx';
 import { speak } from '../audio/voice';
 import { paceFactor, useSettings } from './settings';
 import type { Expression } from '../ui/art/Avatar';
+import { senaDef, type SenaId } from '../game/senas';
 
 export interface SeatMeta {
   name: string;
@@ -60,6 +61,14 @@ export interface MatchOutcome {
 
 export type Intent = 'normal' | 'farol' | 'fuerte' | 'debil';
 
+/** Seña que el jugador conoce en esta mano (de su compañero o pescada a un rival). */
+export interface KnownSena {
+  id: number;
+  seat: number;
+  sena: SenaId;
+  rival: boolean;
+}
+
 export interface Driver {
   kind: 'local' | 'online';
   submit(action: Action): void;
@@ -68,6 +77,9 @@ export interface Driver {
   abandon(): void;
   dispose(): void;
   intentOf?(seat: number): Intent | undefined;
+  /** El humano hace una seña a su compañero. */
+  sena?(sena: SenaId): void;
+  senasLeft?(): number;
 }
 
 interface GameState {
@@ -94,6 +106,8 @@ interface GameState {
   clothId: string;
   /** Tiempo límite del turno en partidas online (ms epoch) */
   turnDeadline: number | null;
+  /** Señas conocidas por el jugador en la mano actual. */
+  knownSenas: KnownSena[];
 
   begin(opts: { driver: Driver; seats: SeatMeta[]; humanSeat: number; view: PlayerView; tableId: string; clothId: string }): void;
   ingest(events: GameEvent[], view: PlayerView): void;
@@ -107,6 +121,9 @@ interface GameState {
   say(seat: number, text: string, kind?: Bubble['kind']): void;
   setSeatConnected(seat: number, connected: boolean): void;
   setDeadline(deadline: number | null): void;
+  /** Muestra el gesto de una seña en la cara de un jugador. */
+  showSena(seat: number, sena: SenaId, opts: { known: boolean; rival: boolean; caption?: string }): void;
+  clearSenas(): void;
 }
 
 let uid = 1;
@@ -204,7 +221,7 @@ export const useGame = create<GameState>()((set, get) => {
     const n = st.seats.length;
     switch (ev.type) {
       case 'hand_start': {
-        set({ dealing: true, bazaHighlight: null, handSummary: null, banner: null, bubbles: {} });
+        set({ dealing: true, bazaHighlight: null, handSummary: null, banner: null, bubbles: {}, knownSenas: [] });
         sfx.collect();
         await sleep(350);
         sfx.shuffle();
@@ -410,6 +427,7 @@ export const useGame = create<GameState>()((set, get) => {
     tableId: 'bodegon',
     clothId: 'verde',
     turnDeadline: null,
+    knownSenas: [],
 
     begin({ driver, seats, humanSeat, view, tableId, clothId }) {
       get().driver?.dispose();
@@ -438,6 +456,7 @@ export const useGame = create<GameState>()((set, get) => {
         tableId,
         clothId,
         turnDeadline: null,
+        knownSenas: [],
       });
       // Saludo del primer rival
       const rival = seats.findIndex((m, i) => !m.human && teamOf(i) !== teamOf(humanSeat));
@@ -500,6 +519,19 @@ export const useGame = create<GameState>()((set, get) => {
 
     setDeadline(deadline) {
       set({ turnDeadline: deadline });
+    },
+
+    showSena(seat, sena, { known, rival, caption }) {
+      const def = senaDef(sena);
+      setExpression(seat, def.expression, 1900);
+      if (known) {
+        set((st) => ({ knownSenas: [...st.knownSenas.filter((k) => !(k.seat === seat && k.sena === sena)), { id: uid++, seat, sena, rival }] }));
+        if (caption) showBubble(seat, caption, 'tantos', 2600);
+      }
+    },
+
+    clearSenas() {
+      set({ knownSenas: [] });
     },
   };
 });

@@ -9,6 +9,8 @@ import type { Action, MatchState } from '../engine/types';
 import { useGame, type Driver, type Intent, type SeatMeta } from '../store/game';
 import { paceFactor } from '../store/settings';
 import type { MatchSetup } from './setup';
+import { getCharacter, pickPhrase } from './characters';
+import { humanSpotChance, MAX_SENAS_PER_HAND, resolveSena, senaDef, senasForHand, spotChance, type SenaId, type SenaKnowledge } from './senas';
 
 export interface LocalMatchResult {
   setup: MatchSetup;
@@ -58,6 +60,13 @@ export class LocalDriver implements Driver {
   private stats: HumanMatchStats = { trucosCantados: 0, trucosGanados: 0, envidosGanados: 0, faroles: 0, floresCantadas: 0, manosGanadas: 0, noQuieroGanados: 0 };
   private finished = false;
   private abandoned = false;
+  /** Señas que conoce cada asiento en la mano actual. */
+  private knowledge: SenaKnowledge[][] = [];
+  private senaHand = 0;
+  private senasUsed = 0;
+  private lastSenaAt = 0;
+  private botSenasScheduled = 0;
+  private senaTimers: ReturnType<typeof setTimeout>[] = [];
   readonly humanSeat = 0;
 
   constructor(
@@ -97,12 +106,98 @@ export class LocalDriver implements Driver {
     return this.intents.get(seat);
   }
 
+  private get teamGame(): boolean {
+    return this.setup.numPlayers >= 4;
+  }
+
+  private ensureHandSenas(): void {
+    const n = this.state.hand.number;
+    if (this.senaHand === n) return;
+    this.senaHand = n;
+    this.senasUsed = 0;
+    this.knowledge = this.setup.seats.map(() => []);
+    this.senaTimers.forEach(clearTimeout);
+    this.senaTimers = [];
+  }
+
+  private difficultyOf(seat: number) {
+    return this.setup.seats[seat].profile?.difficulty ?? this.setup.difficulty;
+  }
+
+  /** Chance de que `seat` (rival) vea una seña hecha por `from`. */
+  private rivalChance(from: number, seat: number): number {
+    if (seat === this.humanSeat) return humanSpotChance(this.difficultyOf(from));
+    const p = this.setup.seats[seat].profile;
+    return spotChance(this.difficultyOf(seat)) + (p?.personality === 'experto' ? 0.05 : 0);
+  }
+
+  senasLeft(): number {
+    this.ensureHandSenas();
+    return this.teamGame ? Math.max(0, MAX_SENAS_PER_HAND - this.senasUsed) : 0;
+  }
+
+  /** El humano le hace una seña a su compañero. */
+  sena(sena: SenaId): void {
+    if (this.disposed || !this.teamGame || this.state.phase !== 'playing') return;
+    this.ensureHandSenas();
+    if (this.senasUsed >= MAX_SENAS_PER_HAND || Date.now() - this.lastSenaAt < 1500) return;
+    this.senasUsed++;
+    this.lastSenaAt = Date.now();
+    const game = useGame.getState();
+    game.showSena(this.humanSeat, sena, { known: false, rival: false });
+    const seen = resolveSena(this.humanSeat, this.setup.numPlayers, (seat) => this.rivalChance(this.humanSeat, seat), Math.random);
+    for (const seat of seen) {
+      this.knowledge[seat].push({ seat: this.humanSeat, sena });
+      if (teamOf(seat) !== teamOf(this.humanSeat)) {
+        game.notify(`¡${this.setup.seats[seat].name} te vio la seña!`, false);
+        if (Math.random() < 0.55) {
+          const ch = getCharacter(this.setup.seats[seat].characterId);
+          this.senaTimers.push(setTimeout(() => !this.disposed && useGame.getState().say(seat, pickPhrase(ch, 'vio_sena'), 'frase'), 500));
+        }
+      }
+    }
+  }
+
+  /** Los bots se hacen señas con su compañero al comienzo de cada mano. */
+  private scheduleBotSenas(): void {
+    if (!this.teamGame || this.state.phase !== 'playing') return;
+    this.ensureHandSenas();
+    if (this.botSenasScheduled === this.state.hand.number) return;
+    this.botSenasScheduled = this.state.hand.number;
+    const n = this.setup.numPlayers;
+    let delay = 400;
+    for (let seat = 0; seat < n; seat++) {
+      if (this.setup.seats[seat].human) continue;
+      const list = senasForHand(this.state.hand.dealt[seat], this.setup.flor).slice(0, 2);
+      for (const sena of list) {
+        const at = delay + Math.random() * 500;
+        delay += 650;
+        this.senaTimers.push(
+          setTimeout(() => {
+            if (this.disposed || this.state.phase !== 'playing' || this.senaHand !== this.state.hand.number) return;
+            const seen = resolveSena(seat, n, (s) => this.rivalChance(seat, s), Math.random);
+            for (const s of seen) this.knowledge[s].push({ seat, sena });
+            const humanIsPartner = teamOf(seat) === teamOf(this.humanSeat);
+            const label = senaDef(sena).label;
+            if (humanIsPartner) {
+              useGame.getState().showSena(seat, sena, { known: true, rival: false, caption: `Seña: ${label}` });
+            } else if (seen.includes(this.humanSeat)) {
+              useGame.getState().showSena(seat, sena, { known: true, rival: true, caption: `¡Le viste la seña! ${label}` });
+              useGame.getState().notify(`Pescaste una seña de ${this.setup.seats[seat].name}: ${label}`, true);
+            }
+          }, at),
+        );
+      }
+    }
+  }
+
   private apply(action: Action): void {
     if (this.disposed) return;
     const prevPhase = this.state.phase;
     const res = applyAction(this.state, action);
     this.track(action, res.state);
     this.state = res.state;
+    this.ensureHandSenas();
     if (prevPhase === 'playing' && this.state.phase !== 'playing') {
       this.handsPlayed++;
       this.state.players.forEach((p) => {
@@ -151,6 +246,7 @@ export class LocalDriver implements Driver {
       this.schedule(() => this.nextHand(), 3400);
       return;
     }
+    this.scheduleBotSenas();
     const actor = pickActor(s, this.humanSeat);
     if (actor === null || actor === this.humanSeat) {
       useGame.getState().setThinking(null);
@@ -184,7 +280,8 @@ export class LocalDriver implements Driver {
       this.onIdle();
       return;
     }
-    const decision = decide(view, profile, this.memories[seat], Math.random);
+    this.ensureHandSenas();
+    const decision = decide(view, profile, this.memories[seat], Math.random, this.knowledge[seat]);
     this.intents.set(seat, decision.intent);
     useGame.getState().setThinking(null);
     this.apply(decision.action);
@@ -227,6 +324,7 @@ export class LocalDriver implements Driver {
 
   dispose(): void {
     this.disposed = true;
+    this.senaTimers.forEach(clearTimeout);
     if (this.timer) clearTimeout(this.timer);
     this.timer = null;
   }

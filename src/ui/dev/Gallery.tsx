@@ -3,7 +3,7 @@ import { Avatar, type Expression } from '../art/Avatar';
 import { CardBack, CardFace, type CardBackStyle } from '../art/CardFace';
 import { CHARACTERS } from '../../game/characters';
 
-const EXPRESSIONS: Expression[] = ['neutral', 'happy', 'laugh', 'angry', 'surprised', 'smug', 'sad', 'thinking'];
+const EXPRESSIONS: Expression[] = ['neutral', 'happy', 'laugh', 'angry', 'surprised', 'smug', 'sad', 'thinking', 'cejas', 'guino', 'boca_der', 'boca_izq', 'labio', 'beso', 'boca_abierta', 'ojos_cerrados', 'cachetes', 'lengua'];
 const BACKS: CardBackStyle[] = ['clasico', 'azul', 'celeste', 'premium', 'fileteado', 'paño'];
 
 /** Galería de desarrollo: muestra todas las cartas y personajes. Se abre con ?galeria */
@@ -35,8 +35,8 @@ export function Gallery() {
           </div>
         ))}
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 110px)', gap: 10, marginTop: 20 }}>
-        {CHARACTERS.flatMap((ch) =>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(9, 110px)', gap: 10, marginTop: 20 }}>
+        {CHARACTERS.slice(0, new URLSearchParams(window.location.search).has('todos') ? 99 : 3).flatMap((ch) =>
           EXPRESSIONS.map((e) => <Avatar key={ch.id + e} look={ch.look} expression={e} size={110} animated={false} />),
         )}
       </div>
