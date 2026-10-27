@@ -1622,3 +1622,73 @@
 .toasts {
   top: 24%;
 }
+
+.team-chat-toggle {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.chat-form {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.chat-form input {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255, 240, 210, 0.1);
+  color: var(--cream);
+  user-select: text;
+}
+
+.chat-moderation {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+.mod-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.mod-row .link-btn {
+  font-size: 13px;
+  padding: 2px;
+}
+
+.seats-base .avatar-ring.inspectable {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.rival-card .rc-head {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.rival-card h2 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  color: var(--gold-light);
+  font-size: 26px;
+}
+
+.rival-card h3 {
+  color: var(--gold-light);
+  margin: 6px 0 8px;
+}

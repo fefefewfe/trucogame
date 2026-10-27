@@ -47,6 +47,12 @@ export function App() {
   const animations = useSettings((s) => s.animations);
 
   useEffect(() => {
+    // Enlace de invitación: ?sala=TRUCO-1234
+    const sala = new URLSearchParams(window.location.search).get('sala');
+    if (sala) useNav.getState().go('online', { tab: 'amigos', code: sala });
+  }, []);
+
+  useEffect(() => {
     // Equipos modestos: arrancar con efectos reducidos.
     const nav = navigator as Navigator & { deviceMemory?: number };
     const weak = (nav.hardwareConcurrency ?? 8) <= 2 || (nav.deviceMemory ?? 8) <= 2;

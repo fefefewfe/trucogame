@@ -15,9 +15,10 @@ import { Avatar } from '../art/Avatar';
 import { ScreenHeader } from '../common/ProfileChip';
 import { Backdrop } from '../scene/Backdrop';
 
-/** Silueta estilizada de la Argentina continental (dibujo propio simplificado). */
+/** Silueta simplificada de la Argentina continental y Tierra del Fuego (trazada a partir de coordenadas aproximadas). */
 const ARG_PATH =
-  'M 44 4 L 58 6 L 64 12 L 74 14 L 82 22 L 80 30 L 72 34 L 70 40 L 66 46 L 68 52 L 62 58 L 56 60 L 54 66 L 48 70 L 46 76 L 40 80 L 38 86 L 34 92 L 30 96 L 26 94 L 28 86 L 26 78 L 28 70 L 26 62 L 28 54 L 26 46 L 28 38 L 30 30 L 34 22 L 38 14 Z';
+  'M 20.3 0.9 L 25.2 2.9 L 29.6 2 L 33.8 5.7 L 42.6 10.8 L 50.4 11.7 L 52.8 13.4 L 52 17.1 L 47.3 19.1 L 42.6 24.8 L 41.1 32.8 L 40.6 35.6 L 43.7 39.6 L 45 42.5 L 42.9 47.6 L 37 49 L 32.5 49.9 L 30.4 54.4 L 23.4 55.6 L 26 59 L 22.9 65.8 L 16.9 69.8 L 21.3 74.9 L 16.6 79.2 L 14.6 87.8 L 6.5 86.9 L 4.4 82.7 L 5 74 L 5.7 64 L 6.5 52.7 L 8.3 44.2 L 10.4 35.6 L 10.9 24.2 L 14.3 15.7 L 17.4 8.6 Z';
+const TDF_PATH = 'M 14.6 89 L 23 93.6 L 20 94.6 L 14.6 94.2 Z';
 
 function Dialogue({ stage, onDone, onCancel }: { stage: StoryStage; onDone: () => void; onCancel: () => void }) {
   const profile = useProfile();
@@ -126,37 +127,42 @@ export function StoryScreen() {
       <ScreenHeader title="Modo historia" subtitle="De un bar de barrio a la final del campeonato nacional" />
       <div className="story-layout">
         <div className="story-map panel">
-          <svg viewBox="0 0 100 100" className="map-svg" aria-label="Mapa de la Argentina">
+          <svg viewBox="0 0 60 100" className="map-svg" aria-label="Mapa de la Argentina">
             <defs>
               <linearGradient id="map-g" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0" stopColor="#3d6b4a" />
                 <stop offset="1" stopColor="#24402d" />
               </linearGradient>
             </defs>
-            <path d={ARG_PATH} fill="url(#map-g)" stroke="#e8c35a" strokeWidth={0.6} strokeLinejoin="round" />
-            <path d={STORY.map((s, i) => `${i === 0 ? 'M' : 'L'} ${s.map.x * 0.9 + 3} ${s.map.y}`).join(' ')} fill="none" stroke="#f2e6c8" strokeWidth={0.5} strokeDasharray="1.5 1.5" opacity={0.6} />
-          </svg>
-          <div className="map-nodes">
+            <path d={ARG_PATH} fill="url(#map-g)" stroke="#e8c35a" strokeWidth={0.5} strokeLinejoin="round" />
+            <path d={TDF_PATH} fill="url(#map-g)" stroke="#e8c35a" strokeWidth={0.5} strokeLinejoin="round" />
+            <path d={STORY.map((s, i) => `${i === 0 ? 'M' : 'L'} ${s.map.x} ${s.map.y}`).join(' ')} fill="none" stroke="#f2e6c8" strokeWidth={0.35} strokeDasharray="1 1" opacity={0.7} />
             {STORY.map((s) => {
               const unlocked = s.id <= profile.story.unlocked;
               const done = profile.story.completed.includes(s.id);
+              const on = selected.id === s.id;
               return (
-                <button
+                <g
                   key={s.id}
-                  className={`map-node ${unlocked ? '' : 'locked'} ${done ? 'done' : ''} ${selected.id === s.id ? 'on' : ''}`}
-                  style={{ left: `${s.map.x * 0.9 + 3 + (s.id % 3) * 1.4}%`, top: `${s.map.y + (s.id % 2) * 2.5 - 2}%` }}
-                  disabled={!unlocked}
+                  className={`map-node-svg ${unlocked ? '' : 'locked'}`}
+                  transform={`translate(${s.map.x} ${s.map.y})`}
                   onClick={() => {
+                    if (!unlocked) return;
                     sfx.click();
                     setSelected(s);
                   }}
+                  role="button"
                   aria-label={`Etapa ${s.id}: ${s.title}`}
                 >
-                  {done ? '★' : s.id}
-                </button>
+                  <circle r={on ? 2.6 : 1.9} fill={!unlocked ? '#4a3a2e' : done ? '#2a5ea8' : '#e8a92a'} stroke={on ? '#fff3c4' : '#2a1505'} strokeWidth={0.4} />
+                  {on && <circle r={3.6} fill="none" stroke="#ffe19a" strokeWidth={0.3} opacity={0.8} />}
+                </g>
               );
             })}
-          </div>
+            <text x={36} y={95} fontSize={3} fill="#e8c35a" fontFamily="'Lobster', cursive">
+              Argentina
+            </text>
+          </svg>
           <ol className="stage-list">
             {STORY.map((s) => {
               const unlocked = s.id <= profile.story.unlocked;

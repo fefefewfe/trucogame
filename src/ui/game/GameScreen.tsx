@@ -23,10 +23,12 @@ import { computeLayout } from './layout';
 import { MatchResultOverlay } from './MatchResult';
 import { MicButton } from './MicButton';
 import { SenasPanel } from './SenasPanel';
+import { RivalCard } from './RivalCard';
 import { CallBanner, HandSummaryCard, ReplayModal, RulesModal, StatusBar, Toasts } from './Overlays';
 import { Scoreboard } from './Scoreboard';
 import { SeatsLayer } from './Seats';
 import { getPlayerView } from '../../engine/view';
+import { online } from '../../net/online';
 
 function useStageSize(ref: React.RefObject<HTMLDivElement | null>) {
   const [size, setSize] = useState({ w: window.innerWidth, h: window.innerHeight });
@@ -77,6 +79,9 @@ export function GameScreen() {
   const [rulesOpen, setRulesOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [senasOpen, setSenasOpen] = useState(false);
+  const [teamChat, setTeamChat] = useState(false);
+  const [inspect, setInspect] = useState<number | null>(null);
+  const [chatText, setChatText] = useState('');
   const [confirmQuit, setConfirmQuit] = useState(false);
   const reduced = settings.animations !== 'completas';
   useAutoPerformance();
@@ -132,11 +137,14 @@ export function GameScreen() {
     game.humanAct(a);
   };
 
+  const isOnline = game.driver?.kind === 'online';
   const exitToMenu = () => {
+    const wasOnline = isOnline;
     game.end();
     stopSpeech();
     const mode = resultInfo?.setup.mode;
-    if (mode === 'historia') nav.go('historia');
+    if (wasOnline) nav.go('online');
+    else if (mode === 'historia') nav.go('historia');
     else if (mode === 'torneo') nav.go('torneos');
     else nav.home();
   };
@@ -149,10 +157,14 @@ export function GameScreen() {
 
   const isTournament = resultInfo?.setup.mode === 'torneo';
   const isStory = resultInfo?.setup.mode === 'historia';
-  const sendQuick = (text: string) => {
+  const sendQuick = (text: string, kind: 'rapido' | 'emote' | 'texto' = 'rapido') => {
     sfx.click();
-    game.say(view.seat, text, 'chat');
+    game.say(view.seat, teamChat ? `(equipo) ${text}` : text, 'chat');
     setChatOpen(false);
+    if (isOnline) {
+      void online.chat(text, kind, teamChat).then((r) => !r.ok && game.notify(r.error ?? 'No se pudo enviar', false));
+      return;
+    }
     // Los rivales reaccionan con un gesto.
     const rival = game.seats.findIndex((m, i) => !m.human && teamOf(i) !== myTeam);
     if (rival >= 0) setTimeout(() => useGame.setState((st) => ({ expressions: { ...st.expressions, [rival]: Math.random() < 0.5 ? 'laugh' : 'smug' } })), 700);
@@ -210,6 +222,7 @@ export function GameScreen() {
           deadline={game.turnDeadline}
           knownSenas={game.knownSenas}
           part="base"
+          onInspect={setInspect}
         />
         <CardLayer
           view={view}
@@ -290,9 +303,14 @@ export function GameScreen() {
       <AnimatePresence>
         {chatOpen && (
           <motion.div className="quick-chat" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+            {isOnline && teamGame && (
+              <label className="team-chat-toggle">
+                <input type="checkbox" checked={teamChat} onChange={(e) => setTeamChat(e.target.checked)} /> Solo a mi equipo
+              </label>
+            )}
             <div className="quick-emotes">
               {EMOTES.map((e) => (
-                <button key={e} onClick={() => sendQuick(e)} aria-label={`Reacción ${e}`}>
+                <button key={e} onClick={() => sendQuick(e, 'emote')} aria-label={`Reacción ${e}`}>
                   {e}
                 </button>
               ))}
@@ -304,6 +322,41 @@ export function GameScreen() {
                 </button>
               ))}
             </div>
+            {isOnline && (
+              <form
+                className="chat-form"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (chatText.trim()) sendQuick(chatText.trim(), 'texto');
+                  setChatText('');
+                }}
+              >
+                <input value={chatText} onChange={(e) => setChatText(e.target.value)} maxLength={140} placeholder="Escribí un mensaje…" aria-label="Mensaje" />
+                <button className="btn btn-secondary" type="submit">
+                  Enviar
+                </button>
+              </form>
+            )}
+            {isOnline && (
+              <div className="chat-moderation">
+                {game.seats.map((m, i) =>
+                  m.human && i !== view.seat ? (
+                    <span key={i} className="mod-row">
+                      {m.name}
+                      <button className="link-btn" onClick={() => online.mute(m.name)}>
+                        Silenciar
+                      </button>
+                      <button
+                        className="link-btn"
+                        onClick={() => void online.report(i, 'Comportamiento inapropiado').then((r) => game.notify(r.ok ? 'Denuncia enviada' : r.error ?? 'No se pudo denunciar', r.ok))}
+                      >
+                        Denunciar
+                      </button>
+                    </span>
+                  ) : null,
+                )}
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -334,6 +387,7 @@ export function GameScreen() {
         myTeam={myTeam}
         onContinue={() => game.continueHand()}
         onReplay={() => setReplayOpen(true)}
+        manual={!isOnline}
       />
 
       <AnimatePresence>
@@ -344,6 +398,7 @@ export function GameScreen() {
         )}
       </AnimatePresence>
 
+      <RivalCard seat={inspect} meta={inspect !== null ? game.seats[inspect] ?? null : null} stats={inspect !== null ? game.seatStats[inspect] ?? null : null} onClose={() => setInspect(null)} />
       <ReplayModal open={replayOpen} log={view.lastHandLog} seats={game.seats} myTeam={myTeam} deckStyle={deckStyle} onClose={() => setReplayOpen(false)} />
       <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} flor={view.config.flor} target={view.config.targetScore} />
 
@@ -408,9 +463,9 @@ export function GameScreen() {
             humanSeat={game.humanSeat}
             reduced={settings.animations === 'minimas'}
             onExit={exitToMenu}
-            onRematch={!isTournament && game.driver?.kind === 'local' ? rematch : undefined}
-            onContinue={isStory || isTournament ? exitToMenu : undefined}
-            continueLabel={isStory ? 'Volver al mapa' : isTournament ? 'Ver el cuadro' : undefined}
+            onRematch={!isTournament && !isOnline ? rematch : undefined}
+            onContinue={isStory || isTournament || isOnline ? exitToMenu : undefined}
+            continueLabel={isStory ? 'Volver al mapa' : isTournament ? 'Ver el cuadro' : isOnline ? 'Volver a la sala' : undefined}
           />
         )}
       </AnimatePresence>

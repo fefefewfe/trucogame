@@ -7,7 +7,7 @@
  * acciones: bots locales o un servidor online.
  */
 import { create } from 'zustand';
-import { trucoValue } from '../engine/cards';
+import { trucoValue, type Card } from '../engine/cards';
 import { teamOf } from '../engine/match';
 import type { Action, Call, GameEvent, HandEndReason, Team } from '../engine/types';
 import type { PlayerView } from '../engine/view';
@@ -17,6 +17,7 @@ import { speak } from '../audio/voice';
 import { paceFactor, useSettings } from './settings';
 import type { Expression } from '../ui/art/Avatar';
 import { senaDef, type SenaId } from '../game/senas';
+import { revealedStrength } from '../ai/memory';
 
 export interface SeatMeta {
   name: string;
@@ -60,6 +61,15 @@ export interface MatchOutcome {
 }
 
 export type Intent = 'normal' | 'farol' | 'fuerte' | 'debil';
+
+/** Lo que se vio de cada jugador en esta partida (solo información pública). */
+export interface SeatStats {
+  trucos: number;
+  envidos: number;
+  faroles: number;
+  noQuiero: number;
+  manos: number;
+}
 
 /** Seña que el jugador conoce en esta mano (de su compañero o pescada a un rival). */
 export interface KnownSena {
@@ -108,6 +118,7 @@ interface GameState {
   turnDeadline: number | null;
   /** Señas conocidas por el jugador en la mano actual. */
   knownSenas: KnownSena[];
+  seatStats: SeatStats[];
 
   begin(opts: { driver: Driver; seats: SeatMeta[]; humanSeat: number; view: PlayerView; tableId: string; clothId: string }): void;
   ingest(events: GameEvent[], view: PlayerView): void;
@@ -335,6 +346,28 @@ export const useGame = create<GameState>()((set, get) => {
       }
       case 'hand_end': {
         const view = get().view;
+        // Estadísticas públicas de cada jugador (cantos, faroles que se vieron, "no quiero").
+        {
+          const stats = get().seatStats.map((x) => ({ ...x }));
+          const hlog = view?.hand.log ?? [];
+          const played: Record<number, Card[]> = {};
+          const callers = new Set<number>();
+          for (const e of hlog) {
+            if (e.type === 'card_played') (played[e.seat] ??= []).push(e.card);
+            if (e.type === 'call' && stats[e.seat]) {
+              if (e.call === 'truco' || e.call === 'retruco' || e.call === 'vale_cuatro') {
+                stats[e.seat].trucos++;
+                callers.add(e.seat);
+              } else if (e.call === 'envido' || e.call === 'real_envido' || e.call === 'falta_envido') stats[e.seat].envidos++;
+            }
+            if (e.type === 'response' && e.response === 'no_quiero' && stats[e.seat]) stats[e.seat].noQuiero++;
+          }
+          for (const seat of callers) if ((played[seat]?.length ?? 0) >= 2 && revealedStrength(played[seat]) < 0.5) stats[seat].faroles++;
+          stats.forEach((x, i) => {
+            if (teamOf(i) === ev.winnerTeam) x.manos++;
+          });
+          set({ seatStats: stats });
+        }
         const lines: HandSummary['lines'] = [];
         const log = view?.hand.log ?? [];
         for (const e of log) {
@@ -428,6 +461,7 @@ export const useGame = create<GameState>()((set, get) => {
     clothId: 'verde',
     turnDeadline: null,
     knownSenas: [],
+    seatStats: [],
 
     begin({ driver, seats, humanSeat, view, tableId, clothId }) {
       get().driver?.dispose();
@@ -457,6 +491,7 @@ export const useGame = create<GameState>()((set, get) => {
         clothId,
         turnDeadline: null,
         knownSenas: [],
+        seatStats: seats.map(() => ({ trucos: 0, envidos: 0, faroles: 0, noQuiero: 0, manos: 0 })),
       });
       // Saludo del primer rival
       const rival = seats.findIndex((m, i) => !m.human && teamOf(i) !== teamOf(humanSeat));

@@ -24,28 +24,40 @@ export interface StoredReport {
   room: string;
 }
 
+export interface StoredResult {
+  at: number;
+  playerId: string;
+  won: boolean;
+  delta: number;
+}
+
 interface Data {
   players: Record<string, StoredPlayer>;
   reports: StoredReport[];
+  results: StoredResult[];
 }
+
+export type RankingPeriod = 'global' | 'semanal' | 'mensual';
 
 export interface Store {
   getPlayer(id: string): StoredPlayer | undefined;
   upsertPlayer(p: StoredPlayer): void;
-  ranking(limit: number): RankingEntry[];
+  ranking(limit: number, period?: RankingPeriod): RankingEntry[];
+  addResult(r: StoredResult): void;
   addReport(r: StoredReport): void;
   flush(): void;
 }
 
 export function createStore(file: string | null): Store {
-  let data: Data = { players: {}, reports: [] };
+  let data: Data = { players: {}, reports: [], results: [] };
   if (file) {
     try {
       data = JSON.parse(readFileSync(file, 'utf8')) as Data;
       data.players ??= {};
       data.reports ??= [];
+      data.results ??= [];
     } catch {
-      data = { players: {}, reports: [] };
+      data = { players: {}, reports: [], results: [] };
     }
   }
   let dirty = false;
@@ -73,12 +85,37 @@ export function createStore(file: string | null): Store {
       data.players[p.id] = p;
       touch();
     },
-    ranking(limit) {
-      return Object.values(data.players)
-        .filter((p) => p.played > 0)
-        .sort((a, b) => b.rating - a.rating)
+    ranking(limit, period = 'global') {
+      if (period === 'global') {
+        return Object.values(data.players)
+          .filter((p) => p.played > 0)
+          .sort((a, b) => b.rating - a.rating)
+          .slice(0, limit)
+          .map((p) => ({ name: p.name, characterId: p.characterId, rating: Math.round(p.rating), played: p.played, won: p.won }));
+      }
+      // Semanal / mensual: puntos de ranking ganados en el período.
+      const since = Date.now() - (period === 'semanal' ? 7 : 30) * 24 * 3600 * 1000;
+      const acc = new Map<string, { delta: number; played: number; won: number }>();
+      for (const r of data.results) {
+        if (r.at < since) continue;
+        const e = acc.get(r.playerId) ?? { delta: 0, played: 0, won: 0 };
+        e.delta += r.delta;
+        e.played++;
+        if (r.won) e.won++;
+        acc.set(r.playerId, e);
+      }
+      return [...acc.entries()]
+        .sort((a, b) => b[1].delta - a[1].delta)
         .slice(0, limit)
-        .map((p) => ({ name: p.name, characterId: p.characterId, rating: Math.round(p.rating), played: p.played, won: p.won }));
+        .map(([id, e]) => ({ name: data.players[id]?.name ?? 'Invitado', characterId: data.players[id]?.characterId ?? 'pibe', rating: e.delta, played: e.played, won: e.won }));
+    },
+    addResult(r) {
+      data.results.push(r);
+      const cutoff = Date.now() - 40 * 24 * 3600 * 1000;
+      if (data.results.length > 20000 || (data.results[0] && data.results[0].at < cutoff)) {
+        data.results = data.results.filter((x) => x.at >= cutoff).slice(-20000);
+      }
+      touch();
     },
     addReport(r) {
       data.reports.push(r);

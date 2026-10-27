@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="bg" cx="0.5" cy="0.4" r="0.7">
+      <stop offset="0" stop-color="#1f7a50"/>
+      <stop offset="1" stop-color="#0a3322"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff3c0"/>
+      <stop offset="0.5" stop-color="#f0b43a"/>
+      <stop offset="1" stop-color="#b8771a"/>
+    </linearGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="0.3" y2="1">
+      <stop offset="0" stop-color="#fffaf0"/>
+      <stop offset="1" stop-color="#ecdfc2"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <circle cx="256" cy="256" r="230" fill="none" stroke="#6b3f1d" stroke-width="22"/>
+  <g transform="translate(256 290)">
+    <g transform="rotate(-18) translate(-74 -150)">
+      <rect width="148" height="230" rx="14" fill="url(#paper)" stroke="#2a56a6" stroke-width="6"/>
+      <path d="M74 30 L84 48 L83 150 L65 150 L64 48 Z" fill="#7d9ee0" stroke="#1b2f57" stroke-width="4"/>
+      <path d="M40 150 Q34 158 40 166 L108 166 Q114 158 108 150 Z" fill="url(#gold)" stroke="#7a4b0e" stroke-width="4"/>
+      <rect x="68" y="166" width="12" height="30" rx="3" fill="#b3242c"/>
+      <circle cx="74" cy="204" r="9" fill="url(#gold)"/>
+    </g>
+    <g transform="rotate(16) translate(-74 -150)">
+      <rect width="148" height="230" rx="14" fill="url(#paper)" stroke="#2f7a3a" stroke-width="6"/>
+      <path d="M68 210 L64 110 Q52 70 62 46 Q74 26 92 34 Q106 46 100 90 Q96 120 90 140 L86 210 Z" fill="#6f9a3d" stroke="#2c1d0b" stroke-width="4"/>
+    </g>
+  </g>
+  <g transform="translate(256 110)">
+    <g stroke="url(#gold)" stroke-width="9" stroke-linecap="round">
+      <line x1="0" y1="-62" x2="0" y2="-40"/><line x1="0" y1="62" x2="0" y2="40"/>
+      <line x1="-62" y1="0" x2="-40" y2="0"/><line x1="62" y1="0" x2="40" y2="0"/>
+      <line x1="-44" y1="-44" x2="-28" y2="-28"/><line x1="44" y1="44" x2="28" y2="28"/>
+      <line x1="-44" y1="44" x2="-28" y2="28"/><line x1="44" y1="-44" x2="28" y2="-28"/>
+    </g>
+    <circle r="32" fill="url(#gold)" stroke="#7a4b0e" stroke-width="5"/>
+  </g>
+</svg>

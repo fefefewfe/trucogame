@@ -19,6 +19,7 @@ export function SeatsLayer({
   deadline,
   knownSenas,
   part,
+  onInspect,
 }: {
   view: PlayerView;
   layout: Layout;
@@ -32,6 +33,7 @@ export function SeatsLayer({
   knownSenas: KnownSena[];
   /** 'base' dibuja los avatares (debajo de las cartas); 'overlay' los nombres y globos (encima). */
   part: 'base' | 'overlay';
+  onInspect?: (seat: number) => void;
 }) {
   const me = view.seat;
   return (
@@ -55,7 +57,12 @@ export function SeatsLayer({
             style={{ left: s.avatar.x, top: s.avatar.y, width: size, height: size }}
           >
             {part === 'base' ? (
-              <div className={`avatar-ring frame-${s.seat === me ? frame : 'madera'} team-${teamOf(s.seat) === teamOf(me) ? 'us' : 'them'}`}>
+              <div
+                className={`avatar-ring frame-${s.seat === me ? frame : 'madera'} team-${teamOf(s.seat) === teamOf(me) ? 'us' : 'them'} ${onInspect && s.seat !== me ? 'inspectable' : ''}`}
+                onClick={onInspect && s.seat !== me ? () => onInspect(s.seat) : undefined}
+                role={onInspect && s.seat !== me ? 'button' : undefined}
+                aria-label={onInspect && s.seat !== me ? `Ver ficha de ${meta.name}` : undefined}
+              >
                 {acting && <div className="turn-glow" />}
                 <Avatar look={ch.look} expression={expressions[s.seat] ?? 'neutral'} size="100%" />
                 {deadline && acting && <TurnTimer deadline={deadline} />}

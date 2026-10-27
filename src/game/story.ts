@@ -23,7 +23,7 @@ export interface StoryStage {
   win: DialogueLine[];
   lose: DialogueLine[];
   reward: number;
-  /** Posición en el mapa estilizado (0..100). */
+  /** Posición en el mapa de la Argentina (coordenadas del SVG 60 x 100). */
   map: { x: number; y: number };
 }
 
@@ -50,7 +50,7 @@ export const STORY: StoryStage[] = [
     win: [{ speaker: 'rulo', text: '¡Mirá vos! Tenés mano. El Profe del club te va a querer conocer.' }],
     lose: [{ speaker: 'rulo', text: 'Tranqui, a todos nos pasó. ¿Otra?' }],
     reward: 80,
-    map: { x: 64, y: 47 },
+    map: { x: 40.6, y: 37.3 },
   },
   {
     id: 2,
@@ -73,7 +73,7 @@ export const STORY: StoryStage[] = [
     win: [{ speaker: 'profe', text: 'Estadísticamente improbable... Andá a la parrilla del Flaco, ahí se juega fuerte.' }],
     lose: [{ speaker: 'profe', text: 'Los números no mienten. Volvé cuando hayas practicado.' }],
     reward: 100,
-    map: { x: 65, y: 49 },
+    map: { x: 41.8, y: 38.2 },
   },
   {
     id: 3,
@@ -96,7 +96,7 @@ export const STORY: StoryStage[] = [
     win: [{ speaker: 'flaco', text: '¡Ganador come primero! Che, en San Telmo hay una señora que juega con flor...' }],
     lose: [{ speaker: 'flaco', text: '¡Te pasé por arriba! Comete un choripán y volvé.' }],
     reward: 130,
-    map: { x: 62, y: 48 },
+    map: { x: 39.3, y: 36.8 },
   },
   {
     id: 4,
@@ -120,7 +120,7 @@ export const STORY: StoryStage[] = [
     win: [{ speaker: 'rosa', text: 'Me ganaste en mi propio café... En Córdoba hay uno que te va a hacer reír y llorar.' }],
     lose: [{ speaker: 'rosa', text: 'La casa siempre gana. Volvé cuando quieras.' }],
     reward: 160,
-    map: { x: 65, y: 48 },
+    map: { x: 41.4, y: 36.2 },
   },
   {
     id: 5,
@@ -144,7 +144,7 @@ export const STORY: StoryStage[] = [
     win: [{ speaker: 'cordobes', text: '¡Qué lo parió! Bien jugado, hermano. Andá a Mendoza, preguntá por Lucía.' }],
     lose: [{ speaker: 'cordobes', text: '¡Hasta acá llegaste, hermanooo! Pero volvé, que te invito otro fernet.' }],
     reward: 190,
-    map: { x: 42, y: 38 },
+    map: { x: 25.5, y: 28.2 },
   },
   {
     id: 6,
@@ -167,7 +167,7 @@ export const STORY: StoryStage[] = [
     win: [{ speaker: 'lucia', text: 'Bien jugado. Te ganaste un Malbec... y una invitación a la pulpería de Don Ramón.' }],
     lose: [{ speaker: 'lucia', text: '¡Volvete a Buenos Aires! Pero practicá, que te espero.' }],
     reward: 220,
-    map: { x: 26, y: 46 },
+    map: { x: 13.5, y: 32.5 },
   },
   {
     id: 7,
@@ -190,7 +190,7 @@ export const STORY: StoryStage[] = [
     win: [{ speaker: 'ramon', text: 'Me ganó en buena ley. Está listo para el torneo regional.' }],
     lose: [{ speaker: 'ramon', text: 'Paciencia, amigo. El campo enseña.' }],
     reward: 260,
-    map: { x: 60, y: 46 },
+    map: { x: 37.7, y: 35.4 },
   },
   {
     id: 8,
@@ -214,7 +214,7 @@ export const STORY: StoryStage[] = [
     win: [{ speaker: 'abuela', text: 'Muy bien, querido. Te ganaste el pase al Nacional. Saludame al Tano.' }],
     lose: [{ speaker: 'pibe', text: '¡Re ganado! ¡Aguante la abuela!' }],
     reward: 320,
-    map: { x: 55, y: 42 },
+    map: { x: 34.8, y: 32.6 },
   },
   {
     id: 9,
@@ -238,7 +238,7 @@ export const STORY: StoryStage[] = [
     win: [{ speaker: 'tano', text: '¡Me cacho en diez! Bien jugado, pibe. El Campeón te espera. Cuidado: no habla, calcula.' }],
     lose: [{ speaker: 'tano', text: '¡Andá a practicar al club, pibe! Pero tenés futuro.' }],
     reward: 400,
-    map: { x: 64, y: 48 },
+    map: { x: 42.6, y: 38.9 },
   },
   {
     id: 10,
@@ -261,7 +261,7 @@ export const STORY: StoryStage[] = [
     win: [{ speaker: 'campeon', text: 'Interesante. Me ganaste. Eso no pasa seguido. Sos el nuevo Campeón Nacional.' }],
     lose: [{ speaker: 'campeon', text: 'Buen intento. Hasta acá llegaste. Por ahora.' }],
     reward: 700,
-    map: { x: 64, y: 48 },
+    map: { x: 40.0, y: 38.6 },
   },
 ];
 

@@ -4,6 +4,7 @@
 import type { Difficulty } from '../ai/profiles';
 import type { Action, GameEvent, Team } from '../engine/types';
 import type { PlayerView } from '../engine/view';
+import type { SenaId } from '../game/senas';
 
 export type Visibility = 'publica' | 'privada';
 
@@ -106,9 +107,10 @@ export interface ClientToServer {
   'queue:leave': () => void;
   'queue:fill': (ack: (r: Ack) => void) => void;
   'game:action': (msg: { action: Action }, ack: (r: Ack) => void) => void;
+  'game:sena': (msg: { sena: SenaId }, ack: (r: Ack<{ left: number }>) => void) => void;
   'chat:send': (msg: { text: string; kind: ChatMessage['kind']; teamOnly: boolean }, ack: (r: Ack) => void) => void;
   'player:report': (msg: { seat: number; reason: string }, ack: (r: Ack) => void) => void;
-  'ranking:get': (ack: (r: Ack<RankingEntry[]>) => void) => void;
+  'ranking:get': (msg: { period: 'global' | 'semanal' | 'mensual' }, ack: (r: Ack<RankingEntry[]>) => void) => void;
 }
 
 export interface ServerToClient {
@@ -118,6 +120,8 @@ export interface ServerToClient {
   'game:update': (update: GameUpdate) => void;
   'game:end': (end: GameEnd) => void;
   'chat:message': (msg: ChatMessage) => void;
+  /** Una seña que este jugador vio (o la propia, con mine = true). */
+  'game:sena': (msg: { seat: number; sena: SenaId; rival: boolean; mine: boolean }) => void;
   notice: (msg: { text: string }) => void;
 }
 

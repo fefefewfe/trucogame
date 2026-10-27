@@ -99,11 +99,14 @@ export function HandSummaryCard({
   myTeam,
   onContinue,
   onReplay,
+  manual = true,
 }: {
   summary: HandSummary | null;
   myTeam: Team;
   onContinue: () => void;
   onReplay: () => void;
+  /** En partidas online la mano siguiente la reparte el servidor. */
+  manual?: boolean;
 }) {
   return (
     <AnimatePresence>
@@ -127,9 +130,13 @@ export function HandSummaryCard({
             <button className="btn btn-ghost" onClick={onReplay}>
               Ver repetición
             </button>
-            <button className="btn btn-primary" onClick={onContinue}>
-              Siguiente mano
-            </button>
+            {manual ? (
+              <button className="btn btn-primary" onClick={onContinue}>
+                Siguiente mano
+              </button>
+            ) : (
+              <span className="muted">Se reparte la próxima…</span>
+            )}
           </div>
           <div className="hs-timer" />
         </motion.div>

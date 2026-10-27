@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { envidoAcceptedPoints, envidoRejectedPoints, faltaPoints, teamOf, TRUCO_CALL_LEVEL } from '../../engine/match';
-import type { Action, Call, EnvidoCall, Response, Team, TrucoCall } from '../../engine/types';
+import type { Action, Call, EnvidoCall, Response, TrucoCall } from '../../engine/types';
 import type { PlayerView } from '../../engine/view';
 import { sfx } from '../../audio/sfx';
 import { callLabel, type SeatMeta } from '../../store/game';
@@ -76,7 +76,6 @@ export function ActionBar({ view, enabled, onAct }: { view: PlayerView; enabled:
 function stakes(view: PlayerView, response: Action): string | undefined {
   const pending = view.pending;
   if (!pending) return undefined;
-  const callerTeam: Team = pending.team;
   const mine = teamOf(view.seat);
   if (pending.kind === 'truco') {
     const level = TRUCO_CALL_LEVEL[pending.call as TrucoCall];
@@ -105,7 +104,6 @@ function stakes(view: PlayerView, response: Action): string | undefined {
     if (response.type === 'respond' && response.response === 'quiero') return pending.call === 'contraflor' ? 'La mejor flor suma 6' : 'Se juega la falta';
     if (response.type === 'respond' && response.response === 'no_quiero') return `Ellos suman ${pending.call === 'contraflor_al_resto' && view.hand.flor.calls.some((c) => c.call === 'contraflor') ? 6 : 4}`;
   }
-  void callerTeam;
   return undefined;
 }
 
