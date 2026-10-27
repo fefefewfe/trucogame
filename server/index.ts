@@ -7,11 +7,14 @@
  * - /health y /api/ranking para monitoreo y tablas.
  *
  * Variables de entorno: PORT (3001), DATA_FILE (server/data/datos.json),
- * CORS_ORIGIN (orígenes permitidos separados por coma; por defecto, cualquiera).
+ * CORS_ORIGIN (orígenes permitidos separados por coma; por defecto, cualquiera),
+ * OPEN_BROWSER (si está definida, abre el juego en el navegador al arrancar).
  */
+import { spawn } from 'node:child_process';
 import { createReadStream, existsSync, statSync } from 'node:fs';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { extname, join, normalize, resolve } from 'node:path';
+import { networkInterfaces } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { Server } from 'socket.io';
 import type { ClientToServer, ServerToClient } from '../src/net/protocol';
@@ -86,7 +89,8 @@ export function startServer(opts: { port?: number; dataFile?: string | null; sta
   });
   game = new GameServer(io, store, opts.game);
 
-  return new Promise((resolveStart) => {
+  return new Promise((resolveStart, rejectStart) => {
+    http.once('error', rejectStart);
     http.listen(opts.port ?? Number(process.env.PORT ?? 3001), () => {
       const address = http.address();
       const port = typeof address === 'object' && address ? address.port : 0;
@@ -106,8 +110,36 @@ export function startServer(opts: { port?: number; dataFile?: string | null; sta
 }
 
 const isMain = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+/** Direcciones IPv4 de esta compu en la red local, para que se sumen amigos desde otros dispositivos. */
+function lanAddresses(): string[] {
+  return Object.values(networkInterfaces())
+    .flat()
+    .filter((n) => n && n.family === 'IPv4' && !n.internal)
+    .map((n) => n!.address);
+}
+
+function openBrowser(url: string): void {
+  const [cmd, args] = process.platform === 'win32' ? ['cmd', ['/c', 'start', '', url]] : process.platform === 'darwin' ? ['open', [url]] : ['xdg-open', [url]];
+  const child = spawn(cmd, args, { stdio: 'ignore', detached: true });
+  child.on('error', () => console.log(`Abrí ${url} en tu navegador.`));
+  child.unref();
+}
+
 if (isMain) {
-  startServer({ dataFile: process.env.DATA_FILE ?? resolve('server/data/datos.json') }).then(({ port }) => {
-    console.log(`Truco: La Revancha · servidor en http://localhost:${port}`);
-  });
+  const port = Number(process.env.PORT ?? 3001);
+  const local = `http://localhost:${port}`;
+  startServer({ port, dataFile: process.env.DATA_FILE ?? resolve('server/data/datos.json') }).then(
+    () => {
+      console.log(`Truco: La Revancha · servidor en ${local}`);
+      for (const ip of lanAddresses()) console.log(`  Amigos en tu misma red: http://${ip}:${port}`);
+      if (process.env.OPEN_BROWSER) openBrowser(local);
+    },
+    (err: NodeJS.ErrnoException) => {
+      if (err.code !== 'EADDRINUSE') throw err;
+      // Ya hay un servidor del juego (u otro programa) en ese puerto: se reutiliza.
+      console.log(`El puerto ${port} ya está en uso; si es otra ventana del juego, seguí jugando en ${local}.`);
+      if (process.env.OPEN_BROWSER) openBrowser(local);
+      setTimeout(() => process.exit(0), 500);
+    },
+  );
 }

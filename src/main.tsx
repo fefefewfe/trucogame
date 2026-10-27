@@ -25,7 +25,7 @@ createRoot(document.getElementById('root')!).render(
 );
 
 // Instalable como aplicación y jugable sin conexión contra la computadora.
-if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+if (import.meta.env.PROD && 'serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').catch(() => undefined);
   });

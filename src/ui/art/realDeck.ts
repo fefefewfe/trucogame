@@ -20,7 +20,7 @@ interface RealDeckState {
 
 export const useRealDeckStore = create<RealDeckState>()(() => ({ manifest: null }));
 
-if (typeof window !== 'undefined') {
+if (typeof window !== 'undefined' && window.location.protocol !== 'file:') {
   fetch(`${import.meta.env.BASE_URL}cartas/manifest.json`, { cache: 'no-cache' })
     .then((r) => (r.ok ? r.json() : null))
     .then((m: RealDeckManifest | null) => {

@@ -112,6 +112,11 @@ export function connect(): void {
     if (!socket.connected) socket.connect();
     return;
   }
+  if (window.location.protocol === 'file:' && !import.meta.env.VITE_SERVER_URL) {
+    // Jugar.html abierto con doble clic: no hay servidor en ninguna dirección.
+    useOnline.setState({ status: 'sin-servidor', error: 'El juego está abierto como archivo, sin servidor.' });
+    return;
+  }
   useOnline.setState({ status: 'conectando', error: null });
   socket = io(serverUrl(), { transports: ['websocket', 'polling'], reconnection: true, reconnectionDelay: 1500, timeout: 6000 });
   socket.on('connect', () => void hello());

@@ -154,7 +154,7 @@ export function OnlineScreen() {
       <ScreenHeader title="Multijugador" subtitle="Partidas reales contra personas, con servidor autoritativo" />
       <div className="online-top">
         <StatusPill />
-        <span className="muted small">Servidor: {serverUrl()}</span>
+        {window.location.protocol !== 'file:' && <span className="muted small">Servidor: {serverUrl()}</span>}
         <label className="online-name">
           <span>Tu nombre en la mesa</span>
           <input
@@ -175,7 +175,7 @@ export function OnlineScreen() {
           <h2>El modo online necesita el servidor</h2>
           <p>No encontramos el servidor multijugador en esta dirección, así que por ahora no se pueden jugar partidas contra personas. No mostramos jugadores falsos: el resto del juego (contra la computadora, historia, torneos) funciona igual sin conexión.</p>
           <p>
-            Para jugar con amigos, alguien tiene que levantar el servidor con <code>npm run build</code> y <code>npm run server</code> y abrir el juego desde esa dirección (por ejemplo <code>http://tu-ip:3001</code>). Ver el archivo <code>README.md</code>.
+            Si descargaste el juego, cerrá <code>Jugar.html</code> y abrí <code>Iniciar</code> (Windows, Mac o Linux): levanta el servidor en tu compu y tus amigos de la misma red entran con la dirección que muestra. Desde el código fuente: <code>npm run build</code> y <code>npm run server</code> (ver <code>README.md</code>).
           </p>
           <button className="btn btn-primary" onClick={() => connect()}>
             Reintentar

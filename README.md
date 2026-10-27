@@ -18,8 +18,17 @@ npm run server     # sirve el juego y el multijugador en el mismo puerto
 # abrir http://IP-DEL-SERVIDOR:3001 en cada dispositivo
 ```
 
-Variables del servidor: `PORT` (3001), `DATA_FILE` (`server/data/datos.json`), `CORS_ORIGIN`.
+Variables del servidor: `PORT` (3001), `DATA_FILE` (`server/data/datos.json`), `CORS_ORIGIN`, `OPEN_BROWSER` (abre el juego en el navegador al arrancar).
 Si el cliente se publica aparte, `VITE_SERVER_URL` indica dónde está el servidor.
+
+### Versión descargable
+
+```bash
+npm run paquete    # genera release/TrucoLaRevancha.html y release/TrucoLaRevancha.zip
+```
+
+- `TrucoLaRevancha.html`: el juego entero en un solo archivo. Se abre con doble clic y se juega contra la computadora sin instalar nada.
+- `TrucoLaRevancha.zip`: ese archivo (`Jugar.html`), el servidor compilado en un único `servidor.mjs` y lanzadores para Windows, Mac y Linux. Con Node.js instalado (sin `npm install`), el lanzador levanta el servidor, abre el navegador y muestra la dirección para que se sumen amigos de la misma red. Incluye `LEEME.txt` y las licencias de las bibliotecas y tipografías.
 
 ## Qué trae
 

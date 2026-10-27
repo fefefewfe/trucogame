@@ -31,7 +31,8 @@ async function loadManifest(): Promise<void> {
     manifest = null;
   }
 }
-if (typeof window !== 'undefined') void loadManifest();
+// Abierto como archivo suelto (Jugar.html) no hay carpeta de voces que leer.
+if (typeof window !== 'undefined' && window.location.protocol !== 'file:') void loadManifest();
 
 function loadBuffer(path: string): Promise<AudioBuffer | null> {
   let p = bufferCache.get(path);
