@@ -1,0 +1,306 @@
+/* ---------------------------------------------------------------------- */
+/* Menú principal                                                          */
+/* ---------------------------------------------------------------------- */
+
+.main-menu {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #120a05;
+}
+
+.menu-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.menu-dust {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.menu-patrons {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.patron {
+  position: absolute;
+  width: clamp(110px, 13vw, 190px);
+  aspect-ratio: 1;
+  filter: blur(2.5px) brightness(0.55) saturate(0.85);
+  opacity: 0.9;
+}
+
+.patron-0 {
+  right: 31%;
+  bottom: 31%;
+}
+
+.patron-1 {
+  right: 5%;
+  bottom: 36%;
+  width: clamp(90px, 10vw, 150px);
+  filter: blur(3.5px) brightness(0.45);
+}
+
+.patron-2 {
+  right: 18%;
+  bottom: 30%;
+  width: clamp(120px, 14vw, 210px);
+}
+
+.menu-table {
+  position: absolute;
+  left: 30%;
+  right: -10%;
+  bottom: -16%;
+  height: 46%;
+  pointer-events: none;
+}
+
+.menu-table-top {
+  position: absolute;
+  inset: 0;
+  border-radius: 50% 50% 0 0 / 70% 70% 0 0;
+  background:
+    radial-gradient(ellipse at 45% 35%, rgba(255, 210, 140, 0.25), transparent 55%),
+    radial-gradient(ellipse at 50% 40%, var(--felt), var(--felt-dark) 75%);
+  box-shadow:
+    0 0 0 18px var(--wood),
+    0 -2px 0 20px var(--wood-light),
+    0 30px 60px rgba(0, 0, 0, 0.8),
+    inset 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+.menu-card {
+  position: absolute;
+  width: clamp(80px, 9vw, 130px);
+  aspect-ratio: 200 / 310;
+}
+
+.menu-card-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 14px 24px rgba(0, 0, 0, 0.55);
+}
+
+.menu-card-0 {
+  left: 18%;
+  top: 14%;
+}
+
+.menu-card-1 {
+  left: 31%;
+  top: 9%;
+}
+
+.menu-card-2 {
+  left: 44%;
+  top: 15%;
+}
+
+.menu-deck {
+  position: absolute;
+  left: 62%;
+  top: 12%;
+  width: clamp(60px, 6.5vw, 96px);
+  aspect-ratio: 200 / 310;
+  transform: rotate(-12deg);
+}
+
+.menu-deck-card {
+  position: absolute;
+  inset: 0;
+  border-radius: 7px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.45);
+}
+
+.menu-mate {
+  position: absolute;
+  left: 76%;
+  top: -6%;
+  width: clamp(60px, 6vw, 96px);
+}
+
+.menu-top {
+  position: absolute;
+  top: calc(14px + var(--safe-top));
+  right: 16px;
+  z-index: 20;
+}
+
+.menu-content {
+  position: absolute;
+  left: clamp(16px, 5vw, 80px);
+  top: 50%;
+  translate: 0 -50%;
+  width: min(460px, calc(100vw - 32px));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 10;
+}
+
+.logo {
+  width: 100%;
+  filter: drop-shadow(0 18px 30px rgba(0, 0, 0, 0.6));
+}
+
+.logo svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.logo-shine {
+  animation: shine 5s ease-in-out infinite;
+}
+
+@keyframes shine {
+  0%,
+  60% {
+    transform: translateX(0) skewX(-20deg);
+  }
+  100% {
+    transform: translateX(1000px) skewX(-20deg);
+  }
+}
+
+.menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.menu-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: none;
+  border-radius: 12px;
+  padding: 9px 18px;
+  min-height: 46px;
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: clamp(18px, 2.2vw, 22px);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--cream);
+  text-align: left;
+  background:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.06) 0 3px, transparent 3px 22px),
+    linear-gradient(180deg, #6b3f1d, #43240f);
+  box-shadow: 0 4px 0 #1f0f05, 0 10px 20px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 220, 160, 0.25), inset 0 0 0 1.5px rgba(232, 184, 74, 0.35);
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.45);
+}
+
+.menu-btn small {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 999px;
+  padding: 2px 8px;
+  color: var(--celeste);
+}
+
+.menu-btn.primary {
+  min-height: 62px;
+  font-size: clamp(24px, 3vw, 30px);
+  color: #2a1505;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  background: linear-gradient(180deg, #ffe7a0, #f0b43a 55%, #c9861a);
+  box-shadow: 0 5px 0 #7a4b0e, 0 14px 28px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.menu-btn.primary::after {
+  content: '▶';
+  font-size: 0.8em;
+}
+
+.menu-secondary {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  color: var(--cream-dim);
+  flex-wrap: wrap;
+}
+
+.menu-footer {
+  position: absolute;
+  bottom: calc(8px + var(--safe-bottom));
+  left: clamp(16px, 5vw, 80px);
+  font-size: 12px;
+  color: rgba(246, 236, 212, 0.7);
+  background: rgba(14, 8, 4, 0.7);
+  border-radius: 999px;
+  padding: 3px 12px;
+  pointer-events: none;
+}
+
+@media (max-width: 760px) {
+  .menu-table {
+    left: -10%;
+    right: -10%;
+    bottom: -22%;
+    height: 34%;
+  }
+
+  .menu-content {
+    left: 50%;
+    top: calc(64px + var(--safe-top));
+    translate: -50% 0;
+    gap: 4px;
+  }
+
+  .menu-btn {
+    min-height: 42px;
+    padding: 6px 14px;
+  }
+
+  .menu-btn.primary {
+    min-height: 54px;
+  }
+
+  .patron {
+    opacity: 0.5;
+  }
+
+  .menu-card-0,
+  .menu-card-1,
+  .menu-card-2 {
+    top: 30%;
+  }
+
+  .menu-mate,
+  .menu-footer {
+    display: none;
+  }
+}
+
+@media (max-height: 640px) and (min-width: 761px) {
+  .menu-content {
+    width: min(380px, 40vw);
+  }
+
+  .menu-btn {
+    min-height: 38px;
+    padding: 5px 14px;
+    font-size: 17px;
+  }
+
+  .menu-btn.primary {
+    min-height: 48px;
+  }
+}
